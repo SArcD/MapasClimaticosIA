@@ -49,6 +49,7 @@ def download_files_from_links(file_links, output_dir):
 download_files_from_links(links_colima, output_dir_colima)
 download_files_from_links(links_cerca, output_dir_cerca)
 
+#https://drive.google.com/file/d/1cUr-lZZg54wrlS49-OC7Cd0MIzkfhIou/view?usp=drive_link
 # Configuración del archivo ACE2
 file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
 file_path = "Colima_ACE2.ace2"
@@ -79,17 +80,46 @@ if not os.path.exists(file_path):
         st.stop()
 
 # Leer archivo ACE2
+#try:
+#    data = np.fromfile(file_path, dtype=np.float32)
+#    st.write(f"Archivo ACE2 cargado con {data.size} elementos. Dimensiones esperadas: {tile_size}.")
+#    if data.size != np.prod(tile_size):
+#        st.warning(f"Tamaño incorrecto. Ajustando dimensiones automáticamente.")
+#        tile_size = (int(np.sqrt(data.size)), int(np.sqrt(data.size)))
+#    elevation_data = data.reshape(tile_size)
+#    st.success(f"Archivo ACE2 cargado correctamente con dimensiones ajustadas: {tile_size}.")
+#except Exception as e:
+#    st.error(f"Error al procesar el archivo ACE2: {e}")
+#    st.stop()
+
+import numpy as np
+import streamlit as st
+
+def read_ace2(file_path):
+    """Leer archivo ACE2 y determinar dimensiones automáticamente."""
+    try:
+        data = np.fromfile(file_path, dtype=np.float32)
+        size = data.size
+        st.write(f"El archivo contiene {size} elementos.")
+
+        # Determinar las dimensiones cuadradas más cercanas
+        dimension = int(np.sqrt(size))
+        if dimension * dimension != size:
+            st.warning(f"El archivo no es un cuadrado perfecto. Ajustando dimensiones a ({dimension}, {dimension}).")
+            dimension = size  # Se convierte en una matriz de una sola fila
+
+        # Ajustar automáticamente si es posible
+        return data.reshape((-1, dimension))  # Devuelve la matriz ajustada
+    except ValueError as e:
+        raise RuntimeError(f"No se puede procesar el archivo: {e}")
+
+# Prueba la función
+file_path = "Colima_ACE2.ace2"
 try:
-    data = np.fromfile(file_path, dtype=np.float32)
-    st.write(f"Archivo ACE2 cargado con {data.size} elementos. Dimensiones esperadas: {tile_size}.")
-    if data.size != np.prod(tile_size):
-        st.warning(f"Tamaño incorrecto. Ajustando dimensiones automáticamente.")
-        tile_size = (int(np.sqrt(data.size)), int(np.sqrt(data.size)))
-    elevation_data = data.reshape(tile_size)
-    st.success(f"Archivo ACE2 cargado correctamente con dimensiones ajustadas: {tile_size}.")
+    elevation_data = read_ace2(file_path)
+    st.success(f"Datos de elevación cargados correctamente con dimensiones: {elevation_data.shape}.")
 except Exception as e:
     st.error(f"Error al procesar el archivo ACE2: {e}")
-    st.stop()
 
 
 
