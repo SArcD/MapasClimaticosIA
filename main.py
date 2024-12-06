@@ -9,8 +9,12 @@ output_dir_cerca = "datos_estaciones_cerca_colima"
 os.makedirs(output_dir_colima, exist_ok=True)
 os.makedirs(output_dir_cerca, exist_ok=True)
 
+#https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link
+
+#https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link
+
 # Parámetros del archivo ACE2
-file_url = "https://drive.google.com/uc?id=1LcpoOmi-jOX_CyVvdqmGh19X5gVwPmjr"
+file_url = "https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link"
 file_path = "Colima_ACE2.ace2"
 tile_size = (6000, 6000)
 
