@@ -55,13 +55,27 @@ def read_ace2(file_path, tile_size):
         raise RuntimeError("El archivo no coincide con las dimensiones esperadas. Verifica el archivo descargado.")
 
 # Cargar datos de elevación
+#try:
+#    elevation_data = read_ace2(file_path, tile_size)
+#    st.write("Datos de elevación cargados correctamente.")
+#except Exception as e:
+#    st.error(f"Error al cargar el archivo ACE2: {e}")
+#    st.stop()
+
 try:
-    elevation_data = read_ace2(file_path, tile_size)
+    data = np.fromfile(file_path, dtype=np.float32)
+    actual_size = data.size
+    st.write(f"Datos leídos del archivo: {actual_size} elementos")
+
+    if actual_size != 6000 * 6000:
+        st.warning(f"El archivo contiene {actual_size} elementos. Ajustando dimensiones automáticamente.")
+        tile_size = (int(np.sqrt(actual_size)), int(np.sqrt(actual_size)))  # Ajustar dinámicamente
+        elevation_data = data.reshape(tile_size)
+    else:
+        elevation_data = data.reshape(tile_size)
     st.write("Datos de elevación cargados correctamente.")
 except Exception as e:
-    st.error(f"Error al cargar el archivo ACE2: {e}")
-    st.stop()
-
+    st.error(f"Error al procesar el archivo: {e}")
 
 
 # Listas de claves
