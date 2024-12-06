@@ -4,10 +4,10 @@ import os
 import numpy as np
 
 # Configuración de directorios
-#output_dir_colima = "datos_estaciones_colima"
-#output_dir_cerca = "datos_estaciones_cerca_colima"
-#os.makedirs(output_dir_colima, exist_ok=True)
-#os.makedirs(output_dir_cerca, exist_ok=True)
+output_dir_colima = "datos_estaciones_colima"
+output_dir_cerca = "datos_estaciones_cerca_colima"
+os.makedirs(output_dir_colima, exist_ok=True)
+os.makedirs(output_dir_cerca, exist_ok=True)
 
 # Parámetros del archivo ACE2
 file_url = "https://drive.google.com/uc?id=1LcpoOmi-jOX_CyVvdqmGh19X5gVwPmjr"
@@ -30,47 +30,6 @@ try:
 except Exception as e:
     st.error(f"Error al cargar el archivo ACE2: {e}")
     st.stop()
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import os
-import requests
-
-# Función para descargar archivos desde Google Drive
-#def download_file_from_google_drive(file_id, destination):
-#    """Descarga un archivo de Google Drive dado su file_id."""
-#    url = f"https://drive.google.com/uc?export=download&id={file_id}"
-#    session = requests.Session()
-#    response = session.get(url, stream=True)
-
-#    # Verificar si el archivo requiere confirmación de Google
-#    for key, value in response.cookies.items():
-#        if key.startswith("download_warning"):
-#            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
-#            response = session.get(url, stream=True)
-#            break
-
-#    # Descargar y guardar el archivo
-#    with open(destination, "wb") as f:
-#        for chunk in response.iter_content(chunk_size=32768):
-#            if chunk:  # Filtrar paquetes vacíos
-#                f.write(chunk)
-
-# Parámetros del archivo ACE2
-#file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # Cambia esto por tu ID de archivo
-#file_path = os.path.join(st.session_state.get("temp_dir", "/tmp"), "Colima_ACE2.ace2")
-#tile_size = (6000, 6000)
-
-## Descargar archivo si no existe
-#if not os.path.exists(file_path):
-#    st.write("Descargando el archivo ACE2 desde Google Drive...")
-#    try:
-#        download_file_from_google_drive(file_id, file_path)
-#        st.success("Archivo descargado con éxito.")
-#    except Exception as e:
-#        st.error(f"Error al descargar el archivo: {e}")
-#        st.stop()
 
 
 
