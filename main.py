@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import numpy as np
-import gdown
+#import gdown
 
 
 # Configuración de directorios
@@ -20,7 +20,7 @@ os.makedirs(output_dir_cerca, exist_ok=True)
 #file_path = "Colima_ACE2.ace2"
 #tile_size = (6000, 6000)
 
-import gdown
+#import gdown
 
 # Descargar archivo con gdown
 file_url = "https://drive.google.com/uc?id=1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
