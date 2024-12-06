@@ -16,9 +16,18 @@ os.makedirs(output_dir_cerca, exist_ok=True)
 #https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link
 
 # Parámetros del archivo ACE2
-file_url = "https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link"
+#file_url = "https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link"
+#file_path = "Colima_ACE2.ace2"
+#tile_size = (6000, 6000)
+
+import gdown
+
+# Descargar archivo con gdown
+file_url = "https://drive.google.com/uc?id=1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
 file_path = "Colima_ACE2.ace2"
-tile_size = (6000, 6000)
+gdown.download(file_url, file_path, quiet=False)
+
+
 
 # Descargar archivo ACE2 si no existe
 if not os.path.exists(file_path):
