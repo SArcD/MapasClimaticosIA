@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import numpy as np
-#import gdown
-
+import requests
 
 # Configuración de directorios
 output_dir_colima = "datos_estaciones_colima"
@@ -11,8 +10,7 @@ output_dir_cerca = "datos_estaciones_cerca_colima"
 os.makedirs(output_dir_colima, exist_ok=True)
 os.makedirs(output_dir_cerca, exist_ok=True)
 
-import requests
-
+# Función para descargar archivo desde Google Drive
 def download_file_from_google_drive(file_id, destination):
     """Descargar un archivo desde Google Drive dado su ID y destino."""
     url = f"https://drive.google.com/uc?export=download&id={file_id}"
@@ -32,25 +30,31 @@ def download_file_from_google_drive(file_id, destination):
             if chunk:  # Evitar escribir chunks vacíos
                 f.write(chunk)
 
-# ID del archivo y destino
-file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # Reemplaza con tu file_id
-destination = "Colima_ACE2.ace2"
-
-# Descargar archivo
-download_file_from_google_drive(file_id, destination)
-
-
+# Configuración del archivo ACE2
+file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # ID del archivo en Google Drive
+file_path = "Colima_ACE2.ace2"  # Ruta destino para guardar el archivo
+tile_size = (6000, 6000)  # Tamaño esperado de la matriz
 
 # Descargar archivo ACE2 si no existe
 if not os.path.exists(file_path):
     st.write("Descargando el archivo ACE2...")
-    os.system(f"gdown {file_url} -O {file_path}")
+    try:
+        download_file_from_google_drive(file_id, file_path)
+        st.success("Archivo descargado correctamente.")
+    except Exception as e:
+        st.error(f"Error al descargar el archivo ACE2: {e}")
+        st.stop()
 
-# Leer el archivo ACE2
+# Función para leer el archivo ACE2
 def read_ace2(file_path, tile_size):
     """Leer archivo ACE2 y convertirlo en una matriz NumPy."""
-    return np.fromfile(file_path, dtype=np.float32).reshape(tile_size)
+    try:
+        data = np.fromfile(file_path, dtype=np.float32)
+        return data.reshape(tile_size)
+    except ValueError:
+        raise RuntimeError("El archivo no coincide con las dimensiones esperadas. Verifica el archivo descargado.")
 
+# Cargar datos de elevación
 try:
     elevation_data = read_ace2(file_path, tile_size)
     st.write("Datos de elevación cargados correctamente.")
