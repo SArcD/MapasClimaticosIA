@@ -20,8 +20,7 @@ def download_file_from_google_drive(file_id, destination):
     # Manejar confirmación para archivos grandes
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&id=1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA
-"
+            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
             response = session.get(url, stream=True)
             break
 
@@ -30,8 +29,6 @@ def download_file_from_google_drive(file_id, destination):
         for chunk in response.iter_content(chunk_size=32768):
             if chunk:  # Evitar escribir chunks vacíos
                 f.write(chunk)
-
-#Colima_ACE2
 
 # Configuración del archivo ACE2
 file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # ID del archivo en Google Drive
@@ -64,6 +61,7 @@ try:
 except Exception as e:
     st.error(f"Error al cargar el archivo ACE2: {e}")
     st.stop()
+
 
 
 # Listas de claves
