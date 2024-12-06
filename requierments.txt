@@ -6,15 +6,8 @@ matplotlib
 scipy
 requests
 gdown
-gdown
-streamlit
-numpy
-pandas
 plotly.express
 seaborn
-pandas
-numpy
-matplotlib
 matplotlib_venn
 altair
 altair_catplot
@@ -29,7 +22,6 @@ bokeh
 fpdf
 pingouin
 skope-rules
-plotly
 pillow
 folium
 PyGithub
@@ -38,7 +30,3 @@ streamlit-folium
 geopy
 geopandas
 rasterio
-rasterio
-gdown
-matplotlib
-numpy
