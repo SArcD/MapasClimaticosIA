@@ -1,8 +1,5 @@
 import streamlit as st
 import os
-import numpy as np
-import pandas as pd
-import gdown
 import requests
 
 # Configuración de directorios
@@ -22,7 +19,7 @@ if not os.path.exists(links_cerca):
     st.error(f"El archivo {links_cerca} no existe. Súbelo o revisa la ruta.")
     st.stop()
 
-# Descargar archivos desde enlaces
+# Descargar archivos desde enlaces utilizando requests
 def download_files_from_links(file_links, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     with open(file_links, "r") as f:
@@ -30,17 +27,24 @@ def download_files_from_links(file_links, output_dir):
     for link in links:
         link = link.strip()
         if link:
-            file_name = link.split("id=")[-1]
+            # Extraer el ID o el nombre del archivo del enlace
+            file_name = link.split("id=")[-1] if "id=" in link else os.path.basename(link)
             output_file = os.path.join(output_dir, file_name)
             if not os.path.exists(output_file):
                 try:
-                    gdown.download(link, output_file, quiet=False)
-                    st.write(f"Archivo descargado: {file_name}")
+                    st.write(f"Descargando {file_name}...")
+                    response = requests.get(link, stream=True)
+                    response.raise_for_status()  # Levantar excepción para códigos de estado HTTP 4xx/5xx
+                    with open(output_file, "wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    st.success(f"Archivo descargado: {file_name}")
                 except Exception as e:
                     st.error(f"Error al descargar {link}: {e}")
             else:
                 st.write(f"Archivo ya existe: {file_name}")
 
+# Descargar los archivos
 download_files_from_links(links_colima, output_dir_colima)
 download_files_from_links(links_cerca, output_dir_cerca)
 
