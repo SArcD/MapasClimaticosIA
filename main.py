@@ -1,54 +1,52 @@
 import streamlit as st
-import requests
 import os
+import requests
 
-# Directorios locales donde guardar los archivos descargados
+# Configuración de directorios
 output_dir_colima = "datos_estaciones_colima"
-output_dir_cerca = "datos_estaciones_cerca_colima"
+output_dir_cerca = "datos_estaciones_cerca"
 os.makedirs(output_dir_colima, exist_ok=True)
 os.makedirs(output_dir_cerca, exist_ok=True)
 
-# Función para descargar un archivo desde Google Drive
-def download_file_from_google_drive(link, destination):
-    """
-    Descarga un archivo desde Google Drive (enlace compartido) y lo guarda en el destino.
-    """
-    url = f"https://drive.google.com/uc?export=download&id={link.split('id=')[-1]}"
-    try:
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        with open(destination, "wb") as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
-        st.success(f"Archivo descargado: {destination}")
-    except Exception as e:
-        st.error(f"Error descargando {destination}: {e}")
+# Validar archivos de enlaces
+links_colima = "links_colima.txt"
+links_cerca = "links_cerca.txt"
+if not os.path.exists(links_colima):
+    st.error(f"El archivo {links_colima} no existe. Súbelo o revisa la ruta.")
+    st.stop()
 
-# Lista de enlaces públicos de archivos en Google Drive
-# Coloca aquí los enlaces compartidos de los archivos de cada carpeta
-files_colima = [
+if not os.path.exists(links_cerca):
+    st.error(f"El archivo {links_cerca} no existe. Súbelo o revisa la ruta.")
+    st.stop()
 
-https://drive.google.com/file/d/1-8FE6BhsTR-CHSzSOVGzL6jOasS23sSX/view?usp=sharing, https://drive.google.com/file/d/1-xpB88CbQsP7YUmrE22WJpA7EAqOIPzE/view?usp=sharing, https://drive.google.com/file/d/10aaKiu5sViTneCPJTXsvmDIqOQcwUJuk/view?usp=sharing, https://drive.google.com/file/d/12jgktl2Uj9O0Sd_HhjWspeZi_dbX1_fb/view?usp=sharing, https://drive.google.com/file/d/15pb129X9rkDnDwzopLttCuLkxYczTSYG/view?usp=sharing, https://drive.google.com/file/d/16eV-7VUVZoFXk5NqXedgp7bnZOgtZslq/view?usp=sharing, https://drive.google.com/file/d/172FtJySjA8tYcYgkSzEfPRY3-qI1tpvP/view?usp=sharing, https://drive.google.com/file/d/180kKwemvI0PghFWhm8XRwP3KAwG4KeQV/view?usp=sharing, https://drive.google.com/file/d/19gVnGoWRoxr5w_aI0-0oraJ1u-8ZIi4L/view?usp=sharing, https://drive.google.com/file/d/1A1P7zCMrPxjMqWFFeW3ApSBV5EDD7RhB/view?usp=sharing, https://drive.google.com/file/d/1BtTwfb17eqPPbUg1gE9Hc7MIqQKrY9Xu/view?usp=sharing, https://drive.google.com/file/d/1Cov5D6dDrAQTv44SSaDdf0Oe2z4Zdyx8/view?usp=sharing, https://drive.google.com/file/d/1EcnbLgBwfcvTqf21d1qJRvZptLtDS_0B/view?usp=sharing, https://drive.google.com/file/d/1EpGMLPgIreZz1Qb0CSrL2BaBqx0hsC-A/view?usp=sharing, https://drive.google.com/file/d/1FM2q1MO4pi5nsBWV10LunFFO3CeOH5IU/view?usp=sharing, https://drive.google.com/file/d/1GJa77Cm7-xbcdejYfHxuhaSHzeaxCE8q/view?usp=sharing, https://drive.google.com/file/d/1GsLFHDmm-OcOdNCeZX866UQ8GEafyvBm/view?usp=sharing, https://drive.google.com/file/d/1Hp_IEtA1PrR4MkICGHS9jmusQLavtpDX/view?usp=sharing, https://drive.google.com/file/d/1I6F7GCD_kJxJtW9csy50gPLtX7h8gA-Q/view?usp=sharing, https://drive.google.com/file/d/1I_rPJz_CKfZ6HZFR95_9nIuIC3HPnnVA/view?usp=sharing, https://drive.google.com/file/d/1IgST2IzPMNhgQcIWb7UEALRdXHCCatW7/view?usp=sharing, https://drive.google.com/file/d/1J9i1uDFUvHMrbNAgUXW0dnFsbl0ZxO1a/view?usp=sharing, https://drive.google.com/file/d/1JCm1sdhOGSzlxa-pBG9_gstlI3O61Ky9/view?usp=sharing, https://drive.google.com/file/d/1JKsidlWpP7EGV6WKxRuWGrWyg_PVSEIo/view?usp=sharing, https://drive.google.com/file/d/1JTceelKOyANw5-s8-M0JgeZ29bInh0pI/view?usp=sharing, https://drive.google.com/file/d/1Km5b99bNwvGTKWG7nKs-L12h72ZfcJL_/view?usp=sharing, https://drive.google.com/file/d/1PJ5SWUq77dLeT-jti_gYtO-5MDoN3Z4d/view?usp=sharing, https://drive.google.com/file/d/1R0VpFcyH6_SxS7eSzIviXv-oi7JZbDxn/view?usp=sharing, https://drive.google.com/file/d/1Rd6-yJyc3z-dSudnHy7o6giB_PYF5v9X/view?usp=sharing, https://drive.google.com/file/d/1SA2kQOmSOwv1Oee44TGuAV7vfiP-MXY3/view?usp=sharing, https://drive.google.com/file/d/1SbocaaFiB0OG-OTljW-cHEG00UYp_HBZ/view?usp=sharing, https://drive.google.com/file/d/1T8GbFlRSyhRpPXvrSANMQ0yX_AfE7Fk1/view?usp=sharing, https://drive.google.com/file/d/1TFdVjvLmK147wzLgYZYZJJXDa30yihKr/view?usp=sharing, https://drive.google.com/file/d/1UED3xUyZVnjilLdxt-A2Hd_lLwkYWzox/view?usp=sharing, https://drive.google.com/file/d/1UUqfXCGeg_EJ-eDDd4LkHahHvnk5RuR1/view?usp=sharing, https://drive.google.com/file/d/1VbuOplgI3srUj-RKxWKR45vvL4rHSwRJ/view?usp=sharing, https://drive.google.com/file/d/1WMupI1TaVhxilCJYwv0gpfZLtbbIca8i/view?usp=sharing, https://drive.google.com/file/d/1XAPq8PKDV1Yx0XlUt3DrbFmM6BXomzz2/view?usp=sharing, https://drive.google.com/file/d/1Z7MrlwrVLFYHSHClULmqUV4u_4ZRHXbH/view?usp=sharing, https://drive.google.com/file/d/1_0SFbzbOxxm-dWCKh-J1wnTOE7i2z1yy/view?usp=sharing, https://drive.google.com/file/d/1_oUva4tS-qwTsO5kmulIt_ZAPUJyqKg5/view?usp=sharing, https://drive.google.com/file/d/1aBxb_BQ2ix6UTrdTLqhNZtL22AzSHydV/view?usp=sharing, https://drive.google.com/file/d/1aRe_ew5N5I-iun3lNdaqYCqRhVA28EZL/view?usp=sharing, https://drive.google.com/file/d/1ah6GoG5XTQtXMrQkSaKsZY6eeI9LIbCH/view?usp=sharing, https://drive.google.com/file/d/1axhXAajCZr1zIsUZQ4mWlJGY0a5H63sf/view?usp=sharing, https://drive.google.com/file/d/1bCoc53GHGYA0FRaik3IxL_NYgfSBcbNY/view?usp=sharing, https://drive.google.com/file/d/1biq_Eifeql1Qzn6NX9o5iYiA1wNTRW2t/view?usp=sharing, https://drive.google.com/file/d/1eHqFlrTw3imgd03BDqCuvBUfezbzcHs_/view?usp=sharing, https://drive.google.com/file/d/1eJJeF75jsn2Bfsn9rUKf2ysw6z52mNXs/view?usp=sharing, https://drive.google.com/file/d/1eZoWlqmqBot83eQUefHTdHOpB3JOff_o/view?usp=sharing, https://drive.google.com/file/d/1fnAcOER1n59VItw4OtZLEmM3pTrHVAqs/view?usp=sharing, https://drive.google.com/file/d/1fxbeMJTevL70bzlGDoooc18WnKNgkUE1/view?usp=sharing, https://drive.google.com/file/d/1gLraPi77hnaTWRBJHr1AwxeYNCLvAxVu/view?usp=sharing, https://drive.google.com/file/d/1ge7pFQPm9kB2bFa2HYO5zGTiixgoZEW2/view?usp=sharing, https://drive.google.com/file/d/1hBIpWZ9wiaEQiDqqrzr6huHQ_C9BXg7-/view?usp=sharing, https://drive.google.com/file/d/1hR1qqkrP2d5M2C7eyuHQMTW3INhdzOms/view?usp=sharing, https://drive.google.com/file/d/1hmaiz05PcVDMOjXRSemvn39yeu3XizMV/view?usp=sharing, https://drive.google.com/file/d/1i4z7bliROXMk_MtpQalE39Y3XI3O4Ml5/view?usp=sharing, https://drive.google.com/file/d/1j-SvQeVjtKl9Do598AOU3xAmmrN2DBHe/view?usp=sharing, https://drive.google.com/file/d/1jW7Pdq00thik8ojyMSwDKfiGe1wV8hPF/view?usp=sharing, https://drive.google.com/file/d/1kPCnn9i3_ooRRINVusPdmd_SXGx1DUWk/view?usp=sharing, https://drive.google.com/file/d/1kt3GCHKtPhx7JWrDK5mxuZt4fD3S9Lye/view?usp=sharing, https://drive.google.com/file/d/1lL2ZtPqpduRCMy6Rp6yp5e3RMXWTvpM5/view?usp=sharing, https://drive.google.com/file/d/1ldzg47naWq0j89l_xva1d5ZNqo8aL9Ij/view?usp=sharing, https://drive.google.com/file/d/1m_u7ZPxuWoKuGMwvRLWTdVPuTbCJfRkP/view?usp=sharing, https://drive.google.com/file/d/1mfszqSfxh1FjFbbR2PcKZLsC5S_4CCPy/view?usp=sharing, https://drive.google.com/file/d/1n57kfLO67_hkyws3tVaraJ_jwyfsEErl/view?usp=sharing, https://drive.google.com/file/d/1o2X2XMFqsvdbq6Lx-qibZByS6L69mMqT/view?usp=sharing, https://drive.google.com/file/d/1o3B11h8yJifO1pTq4uH0Tt1qribS5hlm/view?usp=sharing, https://drive.google.com/file/d/1pGAqDjg9K0uhN9P6ugYndvQAzcGAm48L/view?usp=sharing, https://drive.google.com/file/d/1qVvo4xiy_nxzXZr-rnuEX7rwHJTLeup0/view?usp=sharing, https://drive.google.com/file/d/1rmV8ILrDSkKMbYd_y9SodnTchNjYk6Fi/view?usp=sharing, https://drive.google.com/file/d/1t9vCAITlf3bnmOWrgE44saslOxCOwYvN/view?usp=sharing, https://drive.google.com/file/d/1tXCxBxWZi3c8FcGZPZFXAxOAe17Qv7yA/view?usp=sharing, https://drive.google.com/file/d/1tm3UyP5CC190PpXIuWdT0DQrTg-iMemQ/view?usp=sharing, https://drive.google.com/file/d/1u15jfPt0vvqgc53eo1aWVVXAvEYpizvt/view?usp=sharing, https://drive.google.com/file/d/1uV0SBiz1DIA1TK1a6x2ZFS9dKR8Aji0Z/view?usp=sharing, https://drive.google.com/file/d/1v1tIk2sfsUUNtiTe3mu9kvrs2N_jaOak/view?usp=sharing, https://drive.google.com/file/d/1v7rfU7Gh1i2BFWJmBKj7P9MeOPQ1SAx1/view?usp=sharing, https://drive.google.com/file/d/1vqsNDG6UsiQUP7L1akyjlRvX2FU1rJac/view?usp=sharing, https://drive.google.com/file/d/1vx3Ck71JfeWheTRSwRS1N_-OAVzdkGR7/view?usp=sharing, https://drive.google.com/file/d/1w1nYjPLBEmLU_pGVV3fOumWP1PayWq7Z/view?usp=sharing, https://drive.google.com/file/d/1xjAEj9pZHAOdA3S1gPdTGnCX-xDSBFDH/view?usp=sharing, https://drive.google.com/file/d/1yT1AnFd17fvn2H5PXK81yC9hkZx9PShK/view?usp=sharing, https://drive.google.com/file/d/1zg4czw040EQYNPYd70Xz-U72b8lpv2J9/view?usp=sharing
-]
+# Descargar archivos desde enlaces utilizando requests
+def download_files_from_links(file_links, output_dir):
+    os.makedirs(output_dir, exist_ok=True)
+    with open(file_links, "r") as f:
+        links = f.readlines()
+    for link in links:
+        link = link.strip()
+        if link:
+            # Extraer el ID o el nombre del archivo del enlace
+            file_name = link.split("id=")[-1] if "id=" in link else os.path.basename(link)
+            output_file = os.path.join(output_dir, file_name)
+            if not os.path.exists(output_file):
+                try:
+                    st.write(f"Descargando {file_name}...")
+                    response = requests.get(link, stream=True)
+                    response.raise_for_status()  # Levantar excepción para códigos de estado HTTP 4xx/5xx
+                    with open(output_file, "wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    st.success(f"Archivo descargado: {file_name}")
+                except Exception as e:
+                    st.error(f"Error al descargar {link}: {e}")
+            else:
+                st.write(f"Archivo ya existe: {file_name}")
 
-files_cerca = [
-https://drive.google.com/file/d/1-WzUzBhTgRknK1puUVjudt7Wp93XnC-2/view?usp=sharing, https://drive.google.com/file/d/1-tTKZdKdfR3ddubMnR-fjh6uM-CLS7Sm/view?usp=sharing, https://drive.google.com/file/d/107i2qX0V5UqRNFyQtlzDNXGn14iHK8qK/view?usp=sharing, https://drive.google.com/file/d/10c2bCizI69q6SdQBkSEaT1Ep5hoVD4P_/view?usp=sharing, https://drive.google.com/file/d/11HLtt_5idRT_NRQG0YjCCM3pE7JtX5R8/view?usp=sharing, https://drive.google.com/file/d/121_I-x1l0pCEMNTm7vNNJHGuNoPEamdP/view?usp=sharing, https://drive.google.com/file/d/12P-XO5S_h2Nf98hhk5zNGPDlh1LRElXl/view?usp=sharing, https://drive.google.com/file/d/12Pkzd0-gQdg70fOwNeFQ0xPx6Xu10m0c/view?usp=sharing, https://drive.google.com/file/d/12X7jDmUC57IamqCel5YvqE609gqhx7_H/view?usp=sharing, https://drive.google.com/file/d/133zjHHR9ofrB1tU0dUoNv4IQnK7O0IPT/view?usp=sharing, https://drive.google.com/file/d/13sdKGE1sc7Yl_3ni-Ii9UcgnmHm6F0Zl/view?usp=sharing, https://drive.google.com/file/d/14NXLaPO96YleXheaovqE-VfKIJNrGn81/view?usp=sharing, https://drive.google.com/file/d/16jt9J7YkEDKrE6U-t97OX9wxhL8SdXC7/view?usp=sharing, https://drive.google.com/file/d/16zrx9cWLnBP-4l9dmrPJgIj5PvRhb6Zq/view?usp=sharing, https://drive.google.com/file/d/1B7LPAfCWVMUhDPzRhcx4RbBd6t_xOQ55/view?usp=sharing, https://drive.google.com/file/d/1C1p-jRqUMiCjk68wRQ54DP7s4pfCph1v/view?usp=sharing, https://drive.google.com/file/d/1C2RwZGkmON01sHXJgKfXvQA9qWI_itaC/view?usp=sharing, https://drive.google.com/file/d/1DNtkpzFlDghy_Z6fjtthrxBrE6U9iG3J/view?usp=sharing, https://drive.google.com/file/d/1EujcHkrVYEvL5b5WCTAkmhyEvChLzXs8/view?usp=sharing, https://drive.google.com/file/d/1GMJwlMyLskvvel_Sd1H-vm9824u01_lx/view?usp=sharing, https://drive.google.com/file/d/1GclPpyBpZxPmL8muAlQ0BS7b8-lBUiGx/view?usp=sharing, https://drive.google.com/file/d/1H9mJib50mY2fISffpwUyBlOG5u4zOwsM/view?usp=sharing, https://drive.google.com/file/d/1HZUmaVMNSp5E1p9QcewuVU27eGx-AmEM/view?usp=sharing, https://drive.google.com/file/d/1JkgTlaS4c1wZAHIaVS_ytaHc6FxjQS6F/view?usp=sharing, https://drive.google.com/file/d/1LReJcymAxcc93zHSjzZgbas4hyjGcoGi/view?usp=sharing, https://drive.google.com/file/d/1MN2CC9fdjJ4pE4nBs0iS6nirXhM_lIYu/view?usp=sharing, https://drive.google.com/file/d/1M_6PBCV_EweRR9CKvJN49Q-jAYoCqmbQ/view?usp=sharing, https://drive.google.com/file/d/1MbSHRyso-4RFrLLumKGMZK4hx5mXCKfE/view?usp=sharing, https://drive.google.com/file/d/1Oh-dfPHmYk4svgyYIwOa_Bmi54R2-HPp/view?usp=sharing, https://drive.google.com/file/d/1T_w8CZCQAUQkd_0mFN2kFKYpeZWDq9aT/view?usp=sharing, https://drive.google.com/file/d/1U0joEkZO41BKWPVewyHf8M83RuvW43SA/view?usp=sharing, https://drive.google.com/file/d/1WVBrio6h9SqDFaj5XSM1gYtSlrmMred5/view?usp=sharing, https://drive.google.com/file/d/1WVq3ReKDnPx3bX7I6fbWOywpCS7IJVE8/view?usp=sharing, https://drive.google.com/file/d/1WZgkeVlVA6IT9LxdObdgxzBW5A5xs9lf/view?usp=sharing, https://drive.google.com/file/d/1WeSw3r3_-fzvOioq1-FfJ212GnbZNFCI/view?usp=sharing, https://drive.google.com/file/d/1XInIFUNKUu_hhppi75KovJKsvjqflU8P/view?usp=sharing, https://drive.google.com/file/d/1XV4d7uHKzgGVR5T-Xi_MJS2akoUSM6h2/view?usp=sharing, https://drive.google.com/file/d/1XjqnUrE8j3Ycl_eBz2vdOV1bhXsob7EO/view?usp=sharing, https://drive.google.com/file/d/1Xz9KaGW3CkDZIVJsfBxdG2u7puIB5ta2/view?usp=sharing, https://drive.google.com/file/d/1YygCNhuiwxzj-u_KzYPCHBsgRnFGdDO3/view?usp=sharing, https://drive.google.com/file/d/1_Q2k7F42W2dATJiScaoAFextoscSQcyD/view?usp=sharing, https://drive.google.com/file/d/1_ajvMjuwThhRm5bmLU1ibND80Jn6tyk0/view?usp=sharing, https://drive.google.com/file/d/1bXw1l9oKzbqMyKdcasNet85f-nHvzzl9/view?usp=sharing, https://drive.google.com/file/d/1bp8kDPyL-uN9-Iv82fmnYClihj2vq0DP/view?usp=sharing, https://drive.google.com/file/d/1c7lAEll96Q2QIvvZES29hE3SimYEvay7/view?usp=sharing, https://drive.google.com/file/d/1cHDfjKsF7BribPoawka_zrrn0oZ4SLvP/view?usp=sharing, https://drive.google.com/file/d/1cgpghFQLBYwxzdc03YkVSnaJ7XdYLYtd/view?usp=sharing, https://drive.google.com/file/d/1dJsG7s2OKxcNPJbV6xIDrUN7suzRdSCv/view?usp=sharing, https://drive.google.com/file/d/1fJAWTHuvDnLVKC_Rlf0SaafGpxSTvG8Z/view?usp=sharing, https://drive.google.com/file/d/1fg_YXeWX1yClPRaElIYiVSqCxqvo7mKv/view?usp=sharing, https://drive.google.com/file/d/1gYk42KwJQTZAS9wkqJVe8Uc8uQSBQ3FT/view?usp=sharing, https://drive.google.com/file/d/1gbdyd60N2OwNjCUNCoPX49IOi_CIRj5o/view?usp=sharing, https://drive.google.com/file/d/1glZJiuHCOA-nK47TMb3vHqfm47mwoJ7m/view?usp=sharing, https://drive.google.com/file/d/1iFUYjja1H15TKsK-J8KG7jw5rdjV1ZVy/view?usp=sharing, https://drive.google.com/file/d/1iSEA4hGZq3ANkP15HK6X9tQCf_-CUD9m/view?usp=sharing, https://drive.google.com/file/d/1ib4OwnmW82gjhmfDBEeyhNewn5VBV37b/view?usp=sharing, https://drive.google.com/file/d/1jh8E3P8QYXb482OIPAM_4gkqkGujTunr/view?usp=sharing, https://drive.google.com/file/d/1jxqvOD1QYW3NAhYdQitrijeipglpAwY1/view?usp=sharing, https://drive.google.com/file/d/1k8yRXLA40HX80k5WgstbZbXm1WMzUku_/view?usp=sharing, https://drive.google.com/file/d/1kGxlV8ROxAO1bs3ztzshxxvD5z4_vV1H/view?usp=sharing, https://drive.google.com/file/d/1kTeHlv0Y4NqJKxVzigBa3J78_uMXzise/view?usp=sharing, https://drive.google.com/file/d/1k_542bvAWwhs-pNphtCbLvOXk0BxKG_2/view?usp=sharing, https://drive.google.com/file/d/1kg9cHIWOSDkYIlObrydFi88Ei_C7BZLw/view?usp=sharing, https://drive.google.com/file/d/1lUpKM7ixZTrLMmB-D-mHNrtihmVR6eKL/view?usp=sharing, https://drive.google.com/file/d/1nBrKofNlBD5YJMPZR8C6Ff7yCOoRNhRv/view?usp=sharing, https://drive.google.com/file/d/1nG51WazF70ct7HuzwO2Q2ITXtSXdWo5X/view?usp=sharing, https://drive.google.com/file/d/1nH_2V7Apj9znEEuUphKI14hoLC_TZndJ/view?usp=sharing, https://drive.google.com/file/d/1nv4-aPTi47oga7YJF6AZvqmYpiaY8pCp/view?usp=sharing, https://drive.google.com/file/d/1pA8XtYoau_szXV-0_F-UEg3aWR4cqiWr/view?usp=sharing, https://drive.google.com/file/d/1tXMF17_Qx3qElHbS_Fj5kmB4d85jWVlf/view?usp=sharing, https://drive.google.com/file/d/1t_GCMKQU_Lvv-EezxZX2xHNaM9w0Glz0/view?usp=sharing, https://drive.google.com/file/d/1uuPBkijgXAZU95NfQWUFs8TD0cwkfPqt/view?usp=sharing, https://drive.google.com/file/d/1wazeBFh2t9f2bKzJQdKjazio67nyq15r/view?usp=sharing, https://drive.google.com/file/d/1zW6PsnOwjnCqvygS9Zo5kILhSNoCOQ2s/view?usp=sharing, https://drive.google.com/file/d/1zgz9pn3xqswu7Kv7Tw3jwxRNC97LsIpG/view?usp=sharing, https://drive.google.com/file/d/1zzfpZD6U39jTpJyoG0d47jRWindjYTeM/view?usp=sharing
-]
-
-# Descargar archivos de cada lista
-st.write("Descargando archivos de la carpeta 'Colima'...")
-for link in files_colima:
-    file_name = link.split("id=")[-1] + ".csv"  # Renombra si es necesario
-    destination = os.path.join(output_dir_colima, file_name)
-    download_file_from_google_drive(link, destination)
-
-st.write("Descargando archivos de la carpeta 'Cerca'...")
-for link in files_cerca:
-    file_name = link.split("id=")[-1] + ".csv"  # Renombra si es necesario
-    destination = os.path.join(output_dir_cerca, file_name)
-    download_file_from_google_drive(link, destination)
-
-st.success("¡Todos los archivos fueron descargados correctamente!")
+# Descargar los archivos
+download_files_from_links(links_colima, output_dir_colima)
+download_files_from_links(links_cerca, output_dir_cerca)
 
 
 
