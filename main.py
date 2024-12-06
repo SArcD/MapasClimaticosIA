@@ -4,11 +4,39 @@ import os
 import numpy as np
 import requests
 
-# Configuración de directorios
+import gdown
+import os
+
+def download_files_from_links(file_links, output_dir):
+    """Descargar archivos desde un archivo de enlaces."""
+    os.makedirs(output_dir, exist_ok=True)
+    with open(file_links, "r") as f:
+        links = f.readlines()
+    
+    for link in links:
+        link = link.strip()
+        if link:
+            file_name = link.split("id=")[-1]  # Usa el file_id como nombre del archivo
+            output_file = os.path.join(output_dir, file_name)
+            if not os.path.exists(output_file):
+                gdown.download(link, output_file, quiet=False)
+                st.write(f"Archivo descargado: {file_name}")
+            else:
+                st.write(f"Archivo ya existe: {file_name}")
+
+# Archivos de enlaces
+links_colima = "links_colima.txt"  # Crea este archivo con los enlaces
+links_cerca = "links_cerca.txt"   # Otro archivo con enlaces
+
+# Directorios locales
 output_dir_colima = "datos_estaciones_colima"
-output_dir_cerca = "datos_estaciones_cerca_colima"
-os.makedirs(output_dir_colima, exist_ok=True)
-os.makedirs(output_dir_cerca, exist_ok=True)
+output_dir_cerca = "datos_estaciones_cerca"
+
+# Descargar archivos
+download_files_from_links(links_colima, output_dir_colima)
+download_files_from_links(links_cerca, output_dir_cerca)
+
+
 
 # Función para descargar archivo desde Google Drive
 def download_file_from_google_drive(file_id, destination):
