@@ -20,7 +20,8 @@ def download_file_from_google_drive(file_id, destination):
     # Manejar confirmación para archivos grandes
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
+            url = f"https://drive.google.com/uc?export=download&id=1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA
+"
             response = session.get(url, stream=True)
             break
 
