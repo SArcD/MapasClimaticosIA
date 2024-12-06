@@ -11,21 +11,33 @@ output_dir_cerca = "datos_estaciones_cerca_colima"
 os.makedirs(output_dir_colima, exist_ok=True)
 os.makedirs(output_dir_cerca, exist_ok=True)
 
-#https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link
+import requests
 
-#https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link
+def download_file_from_google_drive(file_id, destination):
+    """Descargar un archivo desde Google Drive dado su ID y destino."""
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    session = requests.Session()
+    response = session.get(url, stream=True)
 
-# Parámetros del archivo ACE2
-#file_url = "https://drive.google.com/file/d/1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA/view?usp=drive_link"
-#file_path = "Colima_ACE2.ace2"
-#tile_size = (6000, 6000)
+    # Manejar confirmación para archivos grandes
+    for key, value in response.cookies.items():
+        if key.startswith("download_warning"):
+            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
+            response = session.get(url, stream=True)
+            break
 
-#import gdown
+    # Descargar el archivo
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(chunk_size=32768):
+            if chunk:  # Evitar escribir chunks vacíos
+                f.write(chunk)
 
-# Descargar archivo con gdown
-file_url = "https://drive.google.com/uc?id=1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
-file_path = "Colima_ACE2.ace2"
-gdown.download(file_url, file_path, quiet=False)
+# ID del archivo y destino
+file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # Reemplaza con tu file_id
+destination = "Colima_ACE2.ace2"
+
+# Descargar archivo
+download_file_from_google_drive(file_id, destination)
 
 
 
