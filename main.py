@@ -63,7 +63,6 @@ except Exception as e:
     st.stop()
 
 
-
 # Listas de claves
 claves_colima = [
     "C06001", "C06049", "C06076", "C06074", "C06006", "C06040", "C06010", "C06015",
