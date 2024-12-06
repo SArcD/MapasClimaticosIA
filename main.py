@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import requests
-impor numpy as np
+import numpy as np
 
 # Configuración de directorios
 output_dir_colima = "datos_estaciones_colima"
