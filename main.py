@@ -1,69 +1,69 @@
 import streamlit as st
-import pandas as pd
 import os
 import numpy as np
+import pandas as pd
+import gdown
 import requests
 
-import gdown
-import os
+# Configuración de directorios
+output_dir_colima = "datos_estaciones_colima"
+output_dir_cerca = "datos_estaciones_cerca"
+os.makedirs(output_dir_colima, exist_ok=True)
+os.makedirs(output_dir_cerca, exist_ok=True)
 
+# Validar archivos de enlaces
+links_colima = "links_colima.txt"
+links_cerca = "links_cerca.txt"
+if not os.path.exists(links_colima):
+    st.error(f"El archivo {links_colima} no existe. Súbelo o revisa la ruta.")
+    st.stop()
+
+if not os.path.exists(links_cerca):
+    st.error(f"El archivo {links_cerca} no existe. Súbelo o revisa la ruta.")
+    st.stop()
+
+# Descargar archivos desde enlaces
 def download_files_from_links(file_links, output_dir):
-    """Descargar archivos desde un archivo de enlaces."""
     os.makedirs(output_dir, exist_ok=True)
     with open(file_links, "r") as f:
         links = f.readlines()
-    
     for link in links:
         link = link.strip()
         if link:
-            file_name = link.split("id=")[-1]  # Usa el file_id como nombre del archivo
+            file_name = link.split("id=")[-1]
             output_file = os.path.join(output_dir, file_name)
             if not os.path.exists(output_file):
-                gdown.download(link, output_file, quiet=False)
-                st.write(f"Archivo descargado: {file_name}")
+                try:
+                    gdown.download(link, output_file, quiet=False)
+                    st.write(f"Archivo descargado: {file_name}")
+                except Exception as e:
+                    st.error(f"Error al descargar {link}: {e}")
             else:
                 st.write(f"Archivo ya existe: {file_name}")
 
-# Archivos de enlaces
-links_colima = "links_colima.txt"  # Crea este archivo con los enlaces
-links_cerca = "links_cerca.txt"   # Otro archivo con enlaces
-
-# Directorios locales
-output_dir_colima = "datos_estaciones_colima"
-output_dir_cerca = "datos_estaciones_cerca"
-
-# Descargar archivos
 download_files_from_links(links_colima, output_dir_colima)
 download_files_from_links(links_cerca, output_dir_cerca)
 
+# Configuración del archivo ACE2
+file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
+file_path = "Colima_ACE2.ace2"
+tile_size = (6000, 6000)
 
-
-# Función para descargar archivo desde Google Drive
+# Descargar archivo ACE2
 def download_file_from_google_drive(file_id, destination):
-    """Descargar un archivo desde Google Drive dado su ID y destino."""
     url = f"https://drive.google.com/uc?export=download&id={file_id}"
     session = requests.Session()
     response = session.get(url, stream=True)
-
-    # Manejar confirmación para archivos grandes
     for key, value in response.cookies.items():
         if key.startswith("download_warning"):
             url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
             response = session.get(url, stream=True)
             break
-
-    # Descargar el archivo
     with open(destination, "wb") as f:
         for chunk in response.iter_content(chunk_size=32768):
-            if chunk:  # Evitar escribir chunks vacíos
+            if chunk:
                 f.write(chunk)
 
-# Configuración del archivo ACE2
-file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"  # ID del archivo en Google Drive
-file_path = "Colima_ACE2.ace2"  # Ruta destino para guardar el archivo
-tile_size = (6000, 6000)  # Tamaño esperado de la matriz
-
-# Descargar archivo ACE2 si no existe
 if not os.path.exists(file_path):
     st.write("Descargando el archivo ACE2...")
     try:
@@ -73,37 +73,19 @@ if not os.path.exists(file_path):
         st.error(f"Error al descargar el archivo ACE2: {e}")
         st.stop()
 
-# Función para leer el archivo ACE2
-def read_ace2(file_path, tile_size):
-    """Leer archivo ACE2 y convertirlo en una matriz NumPy."""
-    try:
-        data = np.fromfile(file_path, dtype=np.float32)
-        return data.reshape(tile_size)
-    except ValueError:
-        raise RuntimeError("El archivo no coincide con las dimensiones esperadas. Verifica el archivo descargado.")
-
-# Cargar datos de elevación
-#try:
-#    elevation_data = read_ace2(file_path, tile_size)
-#    st.write("Datos de elevación cargados correctamente.")
-#except Exception as e:
-#    st.error(f"Error al cargar el archivo ACE2: {e}")
-#    st.stop()
-
+# Leer archivo ACE2
 try:
     data = np.fromfile(file_path, dtype=np.float32)
-    actual_size = data.size
-    st.write(f"Datos leídos del archivo: {actual_size} elementos")
-
-    if actual_size != 6000 * 6000:
-        st.warning(f"El archivo contiene {actual_size} elementos. Ajustando dimensiones automáticamente.")
-        tile_size = (int(np.sqrt(actual_size)), int(np.sqrt(actual_size)))  # Ajustar dinámicamente
-        elevation_data = data.reshape(tile_size)
-    else:
-        elevation_data = data.reshape(tile_size)
-    st.write("Datos de elevación cargados correctamente.")
+    st.write(f"Archivo ACE2 cargado con {data.size} elementos. Dimensiones esperadas: {tile_size}.")
+    if data.size != np.prod(tile_size):
+        st.warning(f"Tamaño incorrecto. Ajustando dimensiones automáticamente.")
+        tile_size = (int(np.sqrt(data.size)), int(np.sqrt(data.size)))
+    elevation_data = data.reshape(tile_size)
+    st.success(f"Archivo ACE2 cargado correctamente con dimensiones ajustadas: {tile_size}.")
 except Exception as e:
-    st.error(f"Error al procesar el archivo: {e}")
+    st.error(f"Error al procesar el archivo ACE2: {e}")
+    st.stop()
+
 
 
 # Listas de claves
