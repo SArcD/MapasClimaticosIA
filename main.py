@@ -91,79 +91,82 @@ def download_files_from_links(file_links, output_dir):
 #download_files_from_links(links_cerca, output_dir_cerca)
 
 
+import numpy as np
+import streamlit as st
+import requests
+import os
 
-#https://drive.google.com/file/d/1cUr-lZZg54wrlS49-OC7Cd0MIzkfhIou/view?usp=drive_link
 # Configuración del archivo ACE2
 file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
 file_path = "Colima_ACE2.ace2"
 tile_size = (6000, 6000)
 
-# Descargar archivo ACE2
+# Función para descargar archivo de Google Drive
 def download_file_from_google_drive(file_id, destination):
-    url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    session = requests.Session()
-    response = session.get(url, stream=True)
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
-            response = session.get(url, stream=True)
-            break
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(chunk_size=32768):
-            if chunk:
-                f.write(chunk)
-
-if not os.path.exists(file_path):
-    st.write("Descargando el archivo ACE2...")
+    """
+    Descarga un archivo desde Google Drive usando su file_id.
+    """
     try:
-        download_file_from_google_drive(file_id, file_path)
-        st.success("Archivo descargado correctamente.")
+        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        session = requests.Session()
+        response = session.get(url, stream=True)
+        response.raise_for_status()
+
+        # Manejar confirmación de descargas grandes
+        for key, value in response.cookies.items():
+            if key.startswith("download_warning"):
+                url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
+                response = session.get(url, stream=True)
+                break
+
+        # Escribir el archivo descargado
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(chunk_size=32768):
+                if chunk:
+                    f.write(chunk)
+
+        st.success(f"Archivo descargado correctamente: {destination}")
     except Exception as e:
-        st.error(f"Error al descargar el archivo ACE2: {e}")
-        st.stop()
+        st.error(f"Error al descargar el archivo de Google Drive: {e}")
+        raise
 
-# Leer archivo ACE2
-#try:
-#    data = np.fromfile(file_path, dtype=np.float32)
-#    st.write(f"Archivo ACE2 cargado con {data.size} elementos. Dimensiones esperadas: {tile_size}.")
-#    if data.size != np.prod(tile_size):
-#        st.warning(f"Tamaño incorrecto. Ajustando dimensiones automáticamente.")
-#        tile_size = (int(np.sqrt(data.size)), int(np.sqrt(data.size)))
-#    elevation_data = data.reshape(tile_size)
-#    st.success(f"Archivo ACE2 cargado correctamente con dimensiones ajustadas: {tile_size}.")
-#except Exception as e:
-#    st.error(f"Error al procesar el archivo ACE2: {e}")
-#    st.stop()
-
-import numpy as np
-import streamlit as st
-
-def read_ace2(file_path):
-    """Leer archivo ACE2 y determinar dimensiones automáticamente."""
+# Función para leer archivo ACE2
+def read_ace2(file_path, expected_tile_size):
+    """
+    Lee un archivo ACE2 y valida sus dimensiones.
+    """
     try:
+        # Leer datos desde el archivo
         data = np.fromfile(file_path, dtype=np.float32)
         size = data.size
         st.write(f"El archivo contiene {size} elementos.")
 
-        # Determinar las dimensiones cuadradas más cercanas
-        dimension = int(np.sqrt(size))
-        if dimension * dimension != size:
-            st.warning(f"El archivo no es un cuadrado perfecto. Ajustando dimensiones a ({dimension}, {dimension}).")
-            dimension = size  # Se convierte en una matriz de una sola fila
+        # Validar dimensiones
+        if size != np.prod(expected_tile_size):
+            raise ValueError(
+                f"Dimensiones del archivo no coinciden. Tamaño actual: {size}, esperado: {np.prod(expected_tile_size)}"
+            )
 
-        # Ajustar automáticamente si es posible
-        return data.reshape((-1, dimension))  # Devuelve la matriz ajustada
-    except ValueError as e:
-        raise RuntimeError(f"No se puede procesar el archivo: {e}")
+        # Ajustar datos a la matriz esperada
+        data = data.reshape(expected_tile_size)
+        st.write(f"Archivo ACE2 cargado correctamente con dimensiones: {data.shape}")
+        return data
+    except Exception as e:
+        st.error(f"Error al procesar el archivo ACE2: {e}")
+        raise
 
-# Prueba la función
-file_path = "Colima_ACE2.ace2"
+# Descargar y leer archivo ACE2
+if not os.path.exists(file_path):
+    st.write("Descargando el archivo ACE2...")
+    try:
+        download_file_from_google_drive(file_id, file_path)
+    except Exception as e:
+        st.stop()
+
 try:
-    elevation_data = read_ace2(file_path)
-    st.success(f"Datos de elevación cargados correctamente con dimensiones: {elevation_data.shape}.")
+    elevation_data = read_ace2(file_path, tile_size)
 except Exception as e:
-    st.error(f"Error al procesar el archivo ACE2: {e}")
-
+    st.stop()
 
 
 # Listas de claves
