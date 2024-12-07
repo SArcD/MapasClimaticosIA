@@ -1594,15 +1594,35 @@ try:
     cuartiles = df_estacion[parametro].quantile([0.25, 0.5, 0.75]).to_dict()
 
     # Función para asignar colores basados en cuartiles
+    #def asignar_cuartil(valor):
+    #    if valor <= cuartiles[0.25]:  # Cuartil 1
+    #        return 'Cuartil 1 (Más Bajo)'
+    #    elif valor <= cuartiles[0.5]:  # Cuartil 2
+    #        return 'Cuartil 2'
+    #    elif valor <= cuartiles[0.75]:  # Cuartil 3
+    #        return 'Cuartil 3'
+    #    else:  # Cuartil 4
+    #        return 'Cuartil 4 (Más Alto)'
+
+
+    # Función para asignar colores basados en cuartiles con etiquetas descriptivas
     def asignar_cuartil(valor):
         if valor <= cuartiles[0.25]:  # Cuartil 1
-            return 'Cuartil 1 (Más Bajo)'
+            return 'Temperatura muy baja (Cuartil 1)'
         elif valor <= cuartiles[0.5]:  # Cuartil 2
-            return 'Cuartil 2'
+            return 'Temperatura baja (Cuartil 2)'
         elif valor <= cuartiles[0.75]:  # Cuartil 3
-            return 'Cuartil 3'
+            return 'Temperatura alta (Cuartil 3)'
         else:  # Cuartil 4
-            return 'Cuartil 4 (Más Alto)'
+            return 'Temperatura muy alta (Cuartil 4)'
+
+    # Mapa de colores actualizado
+    color_discrete_map = {
+        'Temperatura muy baja (Cuartil 1)': 'blue',
+        'Temperatura baja (Cuartil 2)': 'yellow',
+        'Temperatura alta (Cuartil 3)': 'orange',
+        'Temperatura muy alta (Cuartil 4)': 'red'
+    }
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
