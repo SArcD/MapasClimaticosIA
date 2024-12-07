@@ -6,7 +6,6 @@ plotly
 matplotlib
 scipy
 requests
-gdown
 plotly.express
 seaborn
 matplotlib_venn
