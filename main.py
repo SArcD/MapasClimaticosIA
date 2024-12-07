@@ -1,24 +1,55 @@
-
 import streamlit as st
-import os
+import pandas as pd
 import requests
 
-# Configuración de directorios
-output_dir_colima = "datos_estaciones_colima"
-output_dir_cerca = "datos_estaciones_cerca"
-os.makedirs(output_dir_colima, exist_ok=True)
-os.makedirs(output_dir_cerca, exist_ok=True)
+# URL base del repositorio en GitHub
+github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
-# Validar archivos de enlaces
-links_colima = "links_colima.txt"
-links_cerca = "links_cerca.txt"
-if not os.path.exists(links_colima):
-    st.error(f"El archivo {links_colima} no existe. Súbelo o revisa la ruta.")
-    st.stop()
+# Función para obtener la lista de archivos en una carpeta desde GitHub
+def list_files_from_github(folder_path):
+    url = github_base_url + folder_path
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        files = response.json()
+        return [file['path'] for file in files if file['type'] == 'file']
+    except Exception as e:
+        st.error(f"Error al listar archivos en {folder_path}: {e}")
+        return []
 
-if not os.path.exists(links_cerca):
-    st.error(f"El archivo {links_cerca} no existe. Súbelo o revisa la ruta.")
-    st.stop()
+# Función para leer un archivo CSV desde GitHub
+def read_csv_from_github(file_path):
+    raw_url = file_path.replace("https://github.com", "https://raw.githubusercontent.com").replace("/blob/", "/")
+    try:
+        response = requests.get(raw_url)
+        response.raise_for_status()
+        return pd.read_csv(pd.compat.StringIO(response.text))
+    except Exception as e:
+        st.error(f"Error al leer {file_path}: {e}")
+        return None
+
+# Listar archivos en las carpetas
+colima_files = list_files_from_github("datos_estaciones_colima")
+cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
+
+# Mostrar archivos y datos
+st.title("Análisis de Datos Meteorológicos")
+
+# Leer y mostrar archivos de la carpeta Colima
+st.subheader("Datos de estaciones en Colima")
+for file in colima_files:
+    st.write(f"Leyendo archivo: {file}")
+    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
+    if df is not None:
+        st.dataframe(df)
+
+# Leer y mostrar archivos de la carpeta Cerca
+st.subheader("Datos de estaciones cerca de Colima")
+for file in cerca_files:
+    st.write(f"Leyendo archivo: {file}")
+    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
+    if df is not None:
+        st.dataframe(df)
 
 # Descargar archivos desde enlaces utilizando requests
 def download_files_from_links(file_links, output_dir):
