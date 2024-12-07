@@ -1551,6 +1551,10 @@ if st.button("Calcular interpolación"):
         st.error("No hay datos disponibles para realizar la interpolación.")
 
 #############################################################################
+
+
+import plotly.express as px
+
 # Seleccionar una estación meteorológica
 estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima, key="estacion_selectbox")
 
@@ -1579,6 +1583,9 @@ try:
         if col in df_estacion.columns:  # Verifica que la columna exista
             df_estacion[col] = pd.to_numeric(df_estacion[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
 
+    # Calcular el promedio general para el parámetro seleccionado
+    promedio_general = df_estacion[parametro].mean()
+
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
 
@@ -1587,9 +1594,23 @@ try:
         promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
-        # Gráfico de barras
+        # Añadir una columna para definir los colores de las barras
+        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(
+            lambda x: 'green' if x > promedio_general else ('red' if x < promedio_general else 'blue')
+        )
+
+        # Gráfico de barras con colores personalizados
         st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
-        st.bar_chart(promedios.set_index('Año'))
+        fig = px.bar(
+            promedios,
+            x='Año',
+            y=f"Promedio de {parametro.strip()}",
+            color='Color',
+            color_discrete_map={'green': 'green', 'red': 'red', 'blue': 'blue'},
+            labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
+            title=f"Promedios anuales de {parametro.strip()} en {estacion}"
+        )
+        st.plotly_chart(fig)
 
     else:
         # Seleccionar año para análisis mensual
@@ -1604,9 +1625,23 @@ try:
         promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
         promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
 
-        # Gráfico de barras
+        # Añadir una columna para definir los colores de las barras
+        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(
+            lambda x: 'green' if x > promedio_general else ('red' if x < promedio_general else 'blue')
+        )
+
+        # Gráfico de barras con colores personalizados
         st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
-        st.bar_chart(promedios.set_index('Mes'))
+        fig = px.bar(
+            promedios,
+            x='Mes',
+            y=f"Promedio de {parametro.strip()}",
+            color='Color',
+            color_discrete_map={'green': 'green', 'red': 'red', 'blue': 'blue'},
+            labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
+            title=f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} ({estacion})"
+        )
+        st.plotly_chart(fig)
 
 except FileNotFoundError:
     st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
