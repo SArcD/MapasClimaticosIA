@@ -757,7 +757,7 @@ coolwarm_scale = [
 
 # Cargar el archivo GeoJSON (Colima.JSON) para referencia del mapa
 try:
-    with open('Colima.JSON', 'r', encoding='latin-1') as file:
+    with open('Colima.json', 'r', encoding='latin-1') as file:
         colima_geojson = json.load(file)
 except Exception as e:
     st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
@@ -1256,7 +1256,7 @@ coolwarm_scale = [
 
 # Cargar el archivo GeoJSON
 try:
-    with open('Colima.JSON', 'r', encoding='latin-1') as file:
+    with open('Colima.json', 'r', encoding='latin-1') as file:
         colima_geojson = json.load(file)
 except Exception as e:
     st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
