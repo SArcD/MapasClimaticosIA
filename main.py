@@ -110,6 +110,11 @@ import numpy as np
 import streamlit as st
 import requests
 
+import numpy as np
+import streamlit as st
+import requests
+import os
+
 # URL del archivo en Dropbox
 dropbox_url = "https://www.dropbox.com/scl/fi/y61orc7bzt2p2d22sxtcu/Colima_ACE2.ace2?rlkey=8asyjm6pjqjo0z02gofpg9l2b&st=eqnn71an&dl=1"
 file_path = "Colima_ACE2.ace2"
@@ -119,7 +124,7 @@ if not os.path.exists(file_path):
     st.write("Descargando el archivo ACE2 desde Dropbox...")
     try:
         response = requests.get(dropbox_url, stream=True)
-        response.raise_for_status()  # Asegurar que la solicitud fue exitosa
+        response.raise_for_status()
         with open(file_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
@@ -128,25 +133,24 @@ if not os.path.exists(file_path):
         st.error(f"Error al descargar el archivo ACE2: {e}")
         st.stop()
 
-# Función para leer y procesar el archivo ACE2
+# Función para leer y calcular dimensiones automáticamente
 def read_ace2(file_path):
     """
-    Leer archivo ACE2 y determinar dimensiones automáticamente.
-    Asume que el archivo representa una matriz cuadrada o rectangular.
+    Leer archivo ACE2 y calcular dimensiones automáticamente.
     """
     try:
-        # Leer datos binarios del archivo
+        # Leer datos del archivo binario
         data = np.fromfile(file_path, dtype=np.float32)
         size = data.size
         st.write(f"El archivo contiene {size} elementos.")
-        
+
         # Intentar calcular dimensiones cuadradas primero
         dimension = int(np.sqrt(size))
         if dimension * dimension == size:
             st.write(f"Archivo detectado como cuadrado con dimensiones: {dimension}x{dimension}")
             return data.reshape((dimension, dimension))
         else:
-            # Determinar las dimensiones más cercanas
+            # Buscar dimensiones más cercanas
             for rows in range(dimension, 1, -1):
                 if size % rows == 0:
                     cols = size // rows
@@ -158,10 +162,20 @@ def read_ace2(file_path):
         return None
 
 # Leer y procesar el archivo ACE2
+elevation_data = None
+tile_size = None
+
 if os.path.exists(file_path):
     elevation_data = read_ace2(file_path)
     if elevation_data is not None:
-        st.success(f"Archivo procesado correctamente con dimensiones: {elevation_data.shape}.")
+        tile_size = elevation_data.shape  # Calcular y asignar tile_size dinámicamente
+        st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
+
+# Verificar que tile_size esté definido para su uso posterior
+if tile_size:
+    st.write(f"`tile_size` definido como: {tile_size}")
+else:
+    st.error("No se pudo definir `tile_size`. Verifique el archivo ACE2.")
 
 
 #############
