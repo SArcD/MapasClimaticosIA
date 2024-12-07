@@ -1553,13 +1553,14 @@ if st.button("Calcular interpolación"):
 #############################################################################
 
 # Seleccionar una estación meteorológica
-estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima)
+estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima, key="estacion_selectbox")
 
 # Parámetro a graficar
 parametro = st.selectbox(
-    "Elige parámetro para graficar",
+    "Selecciona el parámetro para graficar",
     [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
-     ' Temperatura Mínima(ºC)', ' Evaporación(mm)']
+     ' Temperatura Mínima(ºC)', ' Evaporación(mm)'],
+    key="parametro_selectbox"
 )
 
 # Ruta del archivo de la estación
@@ -1573,7 +1574,7 @@ try:
     df_estacion['Mes'] = df_estacion['Fecha'].dt.month
 
     # Opciones de análisis: anual o mensual
-    analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"])
+    analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
 
     if analisis == "Anual":
         # Calcular promedios anuales
@@ -1586,7 +1587,11 @@ try:
 
     else:
         # Seleccionar año para análisis mensual
-        ano_seleccionado = st.selectbox("Elige un año", df_estacion['Año'].unique())
+        ano_seleccionado = st.selectbox(
+            "Selecciona el año",
+            df_estacion['Año'].unique(),
+            key="ano_seleccionado_selectbox"
+        )
 
         # Filtrar por año seleccionado y calcular promedios mensuales
         df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
