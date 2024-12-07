@@ -1557,7 +1557,7 @@ estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima
 
 # Parámetro a graficar
 parametro = st.selectbox(
-    "Selecciona parámetro para graficar",
+    "Elige parámetro para graficar",
     [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
      ' Temperatura Mínima(ºC)', ' Evaporación(mm)']
 )
