@@ -82,8 +82,8 @@ def download_files_from_links(file_links, output_dir):
                 st.write(f"Archivo ya existe: {file_name}")
 
 # Descargar los archivos
-download_files_from_links(links_colima, output_dir_colima)
-download_files_from_links(links_cerca, output_dir_cerca)
+#download_files_from_links(links_colima, output_dir_colima)#
+#download_files_from_links(links_cerca, output_dir_cerca)
 
 
 
