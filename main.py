@@ -1552,38 +1552,54 @@ if st.button("Calcular interpolación"):
 
 #############################################################################
 
-# Gráfico de barras para una estación meteorológica específica
-st.subheader("Análisis de parámetros por estación meteorológica")
+# Seleccionar una estación meteorológica
+estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima)
 
-# Selección del parámetro y la estación meteorológica
+# Parámetro a graficar
 parametro = st.selectbox(
-    "Selecciona el parámetro a analizar",
-    [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', ' Evaporación(mm)', 'Radiación Solar Corregida (W/m²)']
-)
-estacion = st.selectbox(
-    "Selecciona una estación meteorológica de Colima",
-    claves_colima
+    "Selecciona el parámetro para graficar",
+    [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
+     ' Temperatura Mínima(ºC)', ' Evaporación(mm)']
 )
 
-# Filtrar datos para la estación seleccionada
-df_estacion = None
-if estacion in df_2['Clave'].values:
-    df_estacion = df_2[df_2['Clave'] == estacion]
+# Ruta del archivo de la estación
+archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 
-if df_estacion is not None and not df_estacion.empty:
-    # Agrupar por año y calcular promedio del parámetro seleccionado
-    df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], errors='coerce')
+# Leer el archivo CSV de la estación
+try:
+    df_estacion = pd.read_csv(archivo_estacion)
+    df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
     df_estacion['Año'] = df_estacion['Fecha'].dt.year
-    promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
+    df_estacion['Mes'] = df_estacion['Fecha'].dt.month
 
-    # Graficar los promedios
-    st.subheader(f"Promedios de {parametro.strip()} para la estación {estacion}")
-    st.bar_chart(
-        data=promedios.set_index('Año'),
-        width=700,
-        height=400
-    )
-else:
-    st.warning(f"No se encontraron datos para la estación seleccionada: {estacion}")
+    # Opciones de análisis: anual o mensual
+    analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"])
+
+    if analisis == "Anual":
+        # Calcular promedios anuales
+        promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
+        promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
+
+        # Gráfico de barras
+        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
+        st.bar_chart(promedios.set_index('Año'))
+
+    else:
+        # Seleccionar año para análisis mensual
+        ano_seleccionado = st.selectbox("Selecciona el año", df_estacion['Año'].unique())
+
+        # Filtrar por año seleccionado y calcular promedios mensuales
+        df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
+        promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
+        promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
+
+        # Gráfico de barras
+        st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
+        st.bar_chart(promedios.set_index('Mes'))
+
+except FileNotFoundError:
+    st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
+except Exception as e:
+    st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
 
 
