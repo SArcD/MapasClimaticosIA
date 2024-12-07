@@ -1616,13 +1616,7 @@ try:
         else:  # Cuartil 4
             return 'Temperatura muy alta (Cuartil 4)'
 
-    # Mapa de colores actualizado
-    color_discrete_map = {
-        'Temperatura muy baja (Cuartil 1)': 'blue',
-        'Temperatura baja (Cuartil 2)': 'yellow',
-        'Temperatura alta (Cuartil 3)': 'orange',
-        'Temperatura muy alta (Cuartil 4)': 'red'
-    }
+
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
@@ -1642,11 +1636,12 @@ try:
             x='Año',
             y=f"Promedio de {parametro.strip()}",
             color='Cuartil',
-            color_discrete_map={
-                'Cuartil 1 (Más Bajo)': 'blue',
-                'Cuartil 2': 'yellow',
-                'Cuartil 3': 'orange',
-                'Cuartil 4 (Más Alto)': 'red'
+            # Mapa de colores actualizado
+            color_discrete_map = {
+                'Temperatura muy baja (Cuartil 1)': 'blue',
+                'Temperatura baja (Cuartil 2)': 'yellow',
+                'Temperatura alta (Cuartil 3)': 'orange',
+                'Temperatura muy alta (Cuartil 4)': 'red'
             },
             labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
             title=(
