@@ -1563,6 +1563,14 @@ parametro = st.selectbox(
     key="parametro_selectbox"
 )
 
+# Asegúrate de que las columnas relevantes sean numéricas
+for col in [' Precipitación(mm)', ' Temperatura Media(ºC)', 
+            ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', 
+            ' Evaporación(mm)']:
+    if col in df.columns:  # Verifica que la columna exista
+        df[col] = pd.to_numeric(df[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
+
+
 # Ruta del archivo de la estación
 archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 
