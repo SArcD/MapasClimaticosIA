@@ -107,13 +107,9 @@ import os
 
 #############import requests
 import numpy as np
-import streamlit as st
-import requests
-
-import numpy as np
-import streamlit as st
-import requests
 import os
+import streamlit as st
+import requests
 
 # URL del archivo en Dropbox
 dropbox_url = "https://www.dropbox.com/scl/fi/y61orc7bzt2p2d22sxtcu/Colima_ACE2.ace2?rlkey=8asyjm6pjqjo0z02gofpg9l2b&st=eqnn71an&dl=1"
@@ -133,50 +129,68 @@ if not os.path.exists(file_path):
         st.error(f"Error al descargar el archivo ACE2: {e}")
         st.stop()
 
-# Función para leer y calcular dimensiones automáticamente
-def read_ace2(file_path):
+# Diagnóstico de archivo
+def diagnosticar_archivo(file_path):
     """
-    Leer archivo ACE2 y calcular dimensiones automáticamente.
+    Verifica el tamaño del archivo y calcula dimensiones potenciales.
     """
     try:
-        # Leer datos del archivo binario
-        data = np.fromfile(file_path, dtype=np.float32)
-        size = data.size
-        st.write(f"El archivo contiene {size} elementos.")
+        # Tamaño del archivo en bytes
+        file_size_bytes = os.path.getsize(file_path)
+        st.write(f"Tamaño del archivo: {file_size_bytes} bytes")
 
-        # Intentar calcular dimensiones cuadradas primero
-        dimension = int(np.sqrt(size))
-        if dimension * dimension == size:
-            st.write(f"Archivo detectado como cuadrado con dimensiones: {dimension}x{dimension}")
-            return data.reshape((dimension, dimension))
-        else:
-            # Buscar dimensiones más cercanas
-            for rows in range(dimension, 1, -1):
-                if size % rows == 0:
-                    cols = size // rows
-                    st.write(f"Archivo detectado como rectangular con dimensiones: {rows}x{cols}")
-                    return data.reshape((rows, cols))
-            raise ValueError("No se pudieron determinar dimensiones válidas para el archivo.")
+        # Verificar divisibilidad por el tamaño de float32 (4 bytes)
+        if file_size_bytes % 4 != 0:
+            st.error("El tamaño del archivo no es divisible por 4. Puede estar corrupto o no ser un archivo válido.")
+            return None
+
+        # Calcular número total de elementos
+        num_elements = file_size_bytes // 4
+        st.write(f"Número total de elementos (float32): {num_elements}")
+
+        # Buscar dimensiones cuadradas o rectangulares
+        possible_dims = []
+        for rows in range(1, int(np.sqrt(num_elements)) + 1):
+            if num_elements % rows == 0:
+                cols = num_elements // rows
+                possible_dims.append((rows, cols))
+
+        st.write(f"Dimensiones posibles: {possible_dims}")
+        return possible_dims
     except Exception as e:
-        st.error(f"No se pudo procesar el archivo ACE2: {e}")
+        st.error(f"Error al diagnosticar el archivo: {e}")
         return None
 
-# Leer y procesar el archivo ACE2
-elevation_data = None
-tile_size = None
+# Leer y calcular dimensiones automáticamente
+def read_ace2(file_path, selected_dims):
+    """
+    Lee el archivo ACE2 y lo convierte a una matriz según las dimensiones seleccionadas.
+    """
+    try:
+        data = np.fromfile(file_path, dtype=np.float32)
+        st.write(f"Archivo leído con {data.size} elementos.")
 
-if os.path.exists(file_path):
-    elevation_data = read_ace2(file_path)
+        # Convertir los datos a la matriz con las dimensiones seleccionadas
+        rows, cols = selected_dims
+        return data.reshape((rows, cols))
+    except Exception as e:
+        st.error(f"Error al procesar el archivo ACE2: {e}")
+        return None
+
+# Diagnosticar el archivo
+dimensiones_posibles = diagnosticar_archivo(file_path)
+
+# Si se encuentran dimensiones válidas
+if dimensiones_posibles:
+    # Permitir que el usuario seleccione dimensiones
+    seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
+    elevation_data = read_ace2(file_path, seleccion)
+
     if elevation_data is not None:
-        tile_size = elevation_data.shape  # Calcular y asignar tile_size dinámicamente
+        tile_size = elevation_data.shape
         st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
-
-# Verificar que tile_size esté definido para su uso posterior
-if tile_size:
-    st.write(f"`tile_size` definido como: {tile_size}")
 else:
-    st.error("No se pudo definir `tile_size`. Verifique el archivo ACE2.")
-
+    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
 
 #############
 
