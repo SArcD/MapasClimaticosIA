@@ -1594,15 +1594,15 @@ try:
     cuartiles = df_estacion[parametro].quantile([0.25, 0.5, 0.75]).to_dict()
 
     # Función para asignar colores basados en cuartiles
-    def asignar_color(valor):
+    def asignar_cuartil(valor):
         if valor <= cuartiles[0.25]:  # Cuartil 1
-            return 'blue'
+            return 'Cuartil 1 (Más Bajo)'
         elif valor <= cuartiles[0.5]:  # Cuartil 2
-            return 'yellow'
+            return 'Cuartil 2'
         elif valor <= cuartiles[0.75]:  # Cuartil 3
-            return 'orange'
+            return 'Cuartil 3'
         else:  # Cuartil 4
-            return 'red'
+            return 'Cuartil 4 (Más Alto)'
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
@@ -1612,20 +1612,25 @@ try:
         promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
-        # Asignar colores a las barras
-        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_color)
+        # Asignar cuartiles a las barras
+        promedios['Cuartil'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_cuartil)
 
-        # Gráfico de barras con colores personalizados
-        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
+        # Gráfico de barras con cuartiles personalizados
+        st.subheader(f"Anuales de {parametro.strip()} en la estación {estacion}")
         fig = px.bar(
             promedios,
             x='Año',
             y=f"Promedio de {parametro.strip()}",
-            color='Color',
-            color_discrete_map={'blue': 'blue', 'yellow': 'yellow', 'orange': 'orange', 'red': 'red'},
+            color='Cuartil',
+            color_discrete_map={
+                'Cuartil 1 (Más Bajo)': 'blue',
+                'Cuartil 2': 'yellow',
+                'Cuartil 3': 'orange',
+                'Cuartil 4 (Más Alto)': 'red'
+            },
             labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
             title=(
-                f"Promedios anuales de {parametro.strip()} en {estacion} \n"
+                f"Anuales de {parametro.strip()} en {estacion} \n"
                 f"Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
             )
         )
@@ -1644,20 +1649,25 @@ try:
         promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
         promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
 
-        # Asignar colores a las barras
-        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_color)
+        # Asignar cuartiles a las barras
+        promedios['Cuartil'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_cuartil)
 
-        # Gráfico de barras con colores personalizados
-        st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
+        # Gráfico de barras con cuartiles personalizados
+        st.subheader(f"Mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
         fig = px.bar(
             promedios,
             x='Mes',
             y=f"Promedio de {parametro.strip()}",
-            color='Color',
-            color_discrete_map={'blue': 'blue', 'yellow': 'yellow', 'orange': 'orange', 'red': 'red'},
+            color='Cuartil',
+            color_discrete_map={
+                'Cuartil 1 (Más Bajo)': 'blue',
+                'Cuartil 2': 'yellow',
+                'Cuartil 3': 'orange',
+                'Cuartil 4 (Más Alto)': 'red'
+            },
             labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
             title=(
-                f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} \n"
+                f"Mensuales de {parametro.strip()} en {ano_seleccionado} \n"
                 f"Estación {estacion} | Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
             )
         )
