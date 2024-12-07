@@ -55,6 +55,9 @@ cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
 #    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
 #    if df is not None:
 #        st.dataframe(df)
+# Carpetas en el repositorio
+output_dir_colima = "datos_estaciones_colima"
+output_dir_cerca = "datos_estaciones_cerca_colima"
 
 
 
@@ -234,67 +237,6 @@ def obtener_elevacion(lat, lon, tile_size, elevation_data):
     elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
     return max(0, elevacion)  # Evitar valores negativos
 
-
-# Función para procesar datos
-#def procesar_datos(ano, mes, claves, output_dirs):
-#    datos_procesados = []
-
-#    for output_dir in output_dirs:
-#        for clave in claves:
-#            archivo = os.path.join(output_dir, f"{clave}_df.csv")
-#            if os.path.exists(archivo):
-#                df = pd.read_csv(archivo)
-#                df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
-#                df['ano'] = df['Fecha'].dt.year
-#                df['mes'] = df['Fecha'].dt.month
-
-#                # Filtrar por año y mes
-#                df_filtrado = df[df['ano'] == ano]
-#                if mes:
-#                    df_filtrado = df_filtrado[df_filtrado['mes'] == mes]
-
-#                # Limpiar columnas numéricas y calcular promedios
-#                promedios = {}
-#                for col in columnas_numericas:
-#                    if col in df_filtrado.columns:
-#                        df_filtrado[col] = pd.to_numeric(df_filtrado[col].astype(str).str.replace('[^0-9.]', '', regex=True), errors='coerce')
-#                        promedios[col] = df_filtrado[col].mean()
-
-#                # Obtener latitud y longitud
-#                if 'Latitud' in df.columns and 'Longitud' in df.columns:
-#                    latitud = df['Latitud'].iloc[0]
-#                    longitud = df['Longitud'].iloc[0]
-#                    elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
-#                else:
-#                    latitud = np.nan
-#                    longitud = np.nan
-#                    elevacion = np.nan
-
-#                # Determinar el estado de la estación
-#                if clave in claves_colima:
-#                    estado = "Colima"
-#                elif clave in claves_jalisco:
-#                    estado = "Jalisco"
-#                elif clave in claves_michoacan:
-#                    estado = "Michoacán"
-#                else:
-#                    estado = "Desconocido"
-
-#                # Agregar datos al resultado
-#                estacion_data = {
-#                    'Clave': clave,
-#                    'Estado': estado,
-#                    'Latitud': latitud,
-#                    'Longitud': longitud,
-#                    'Elevación (km)': elevacion  # Agregar elevación
-#                }
-#                estacion_data.update(promedios)
-#                datos_procesados.append(estacion_data)
-
-
-#    return pd.DataFrame(datos_procesados)
-
-
 def procesar_datos(ano, mes, claves, output_dirs):
     datos_procesados = []
 
@@ -360,10 +302,6 @@ def procesar_datos(ano, mes, claves, output_dirs):
 
 # Configuración de Streamlit
 st.title("Análisis de Datos Meteorológicos")
-
-import streamlit as st
-
-import streamlit as st
 
 st.markdown("""
 <div style="text-align: justify;">
