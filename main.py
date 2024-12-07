@@ -1,3 +1,5 @@
+pip install gdown
+
 import streamlit as st
 import os
 import requests
