@@ -4,6 +4,15 @@ import requests
 import io  # Importar StringIO desde io
 import os  # Asegurar la importación de os
 
+import requests
+import streamlit as st
+
+# Token de acceso personal
+GITHUB_TOKEN = "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"
+
+# URL base del repositorio
+#github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
+
 
 # URL base del repositorio en GitHub
 github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
