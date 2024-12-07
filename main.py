@@ -36,23 +36,23 @@ colima_files = list_files_from_github("datos_estaciones_colima")
 cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
 
 # Mostrar archivos y datos
-st.title("Análisis de Datos Meteorológicos")
+#st.title("Análisis de Datos Meteorológicos")
 
 # Leer y mostrar archivos de la carpeta Colima
-st.subheader("Datos de estaciones en Colima")
-for file in colima_files:
-    st.write(f"Leyendo archivo: {file}")
-    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
-    if df is not None:
-        st.dataframe(df)
+#st.subheader("Datos de estaciones en Colima")
+#for file in colima_files:
+#    st.write(f"Leyendo archivo: {file}")
+#    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
+#    if df is not None:
+#        st.dataframe(df)
 
 # Leer y mostrar archivos de la carpeta Cerca
-st.subheader("Datos de estaciones cerca de Colima")
-for file in cerca_files:
-    st.write(f"Leyendo archivo: {file}")
-    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
-    if df is not None:
-        st.dataframe(df)
+#st.subheader("Datos de estaciones cerca de Colima")
+#for file in cerca_files:
+#    st.write(f"Leyendo archivo: {file}")
+#    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
+#    if df is not None:
+#        st.dataframe(df)
 
 
 
