@@ -227,15 +227,43 @@ def obtener_anos_disponibles(claves, output_dirs):
     return sorted(anos_disponibles)
 
 # Función para obtener la elevación desde el archivo ACE2
+#def obtener_elevacion(lat, lon, tile_size, elevation_data):
+#    """
+#    Obtiene la elevación en kilómetros desde el archivo ACE2 usando latitud y longitud.
+#    """
+#    # Calcular índices en la matriz ACE2 basados en la latitud y longitud
+#    lat_idx = int(max(0, min((30 - lat) * tile_size[0] / 15, tile_size[0] - 1)))  # Ajusta para el rango ACE2
+#    lon_idx = int(max(0, min((lon + 105) * tile_size[1] / 15, tile_size[1] - 1)))  # Ajusta para el rango ACE2
+#    elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
+#    return max(0, elevacion)  # Evitar valores negativos
+
 def obtener_elevacion(lat, lon, tile_size, elevation_data):
     """
     Obtiene la elevación en kilómetros desde el archivo ACE2 usando latitud y longitud.
     """
-    # Calcular índices en la matriz ACE2 basados en la latitud y longitud
-    lat_idx = int(max(0, min((30 - lat) * tile_size[0] / 15, tile_size[0] - 1)))  # Ajusta para el rango ACE2
-    lon_idx = int(max(0, min((lon + 105) * tile_size[1] / 15, tile_size[1] - 1)))  # Ajusta para el rango ACE2
-    elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
-    return max(0, elevacion)  # Evitar valores negativos
+    try:
+        # Validar dimensiones de tile_size con elevation_data
+        if elevation_data.shape != tile_size:
+            raise ValueError(f"Las dimensiones de elevation_data {elevation_data.shape} no coinciden con tile_size {tile_size}")
+        
+        # Calcular índices en la matriz ACE2 basados en la latitud y longitud
+        lat_idx = int((30 - lat) * tile_size[0] / 15)  # Ajusta para el rango ACE2
+        lon_idx = int((lon + 105) * tile_size[1] / 15)  # Ajusta para el rango ACE2
+
+        # Asegurar que los índices están dentro del rango válido
+        lat_idx = np.clip(lat_idx, 0, tile_size[0] - 1)
+        lon_idx = np.clip(lon_idx, 0, tile_size[1] - 1)
+
+        # Obtener elevación
+        elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
+
+        # Depuración opcional: verificar índices y elevación calculada
+        # st.write(f"Lat: {lat}, Lon: {lon}, Indices: ({lat_idx}, {lon_idx}), Elevación: {elevacion} km")
+
+        return max(0, elevacion)  # Evitar valores negativos
+    except Exception as e:
+        raise RuntimeError(f"Error al calcular elevación para lat={lat}, lon={lon}: {e}")
+
 
 def procesar_datos(ano, mes, claves, output_dirs):
     datos_procesados = []
