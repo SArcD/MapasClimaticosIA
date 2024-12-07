@@ -1583,8 +1583,26 @@ try:
         if col in df_estacion.columns:  # Verifica que la columna exista
             df_estacion[col] = pd.to_numeric(df_estacion[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
 
-    # Calcular el promedio general para el parámetro seleccionado
-    promedio_general = df_estacion[parametro].mean()
+    # Obtener mediana del parámetro seleccionado
+    mediana_parametro = df_estacion[parametro].median()
+
+    # Obtener latitud y longitud de la estación
+    latitud = df_estacion['Latitud'].iloc[0] if 'Latitud' in df_estacion.columns else "No disponible"
+    longitud = df_estacion['Longitud'].iloc[0] if 'Longitud' in df_estacion.columns else "No disponible"
+
+    # Calcular los cuartiles para el parámetro seleccionado
+    cuartiles = df_estacion[parametro].quantile([0.25, 0.5, 0.75]).to_dict()
+
+    # Función para asignar colores basados en cuartiles
+    def asignar_color(valor):
+        if valor <= cuartiles[0.25]:  # Cuartil 1
+            return 'blue'
+        elif valor <= cuartiles[0.5]:  # Cuartil 2
+            return 'yellow'
+        elif valor <= cuartiles[0.75]:  # Cuartil 3
+            return 'orange'
+        else:  # Cuartil 4
+            return 'red'
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
@@ -1594,10 +1612,8 @@ try:
         promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
-        # Añadir una columna para definir los colores de las barras
-        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(
-            lambda x: 'green' if x > promedio_general else ('red' if x < promedio_general else 'blue')
-        )
+        # Asignar colores a las barras
+        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_color)
 
         # Gráfico de barras con colores personalizados
         st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
@@ -1606,9 +1622,12 @@ try:
             x='Año',
             y=f"Promedio de {parametro.strip()}",
             color='Color',
-            color_discrete_map={'green': 'green', 'red': 'red', 'blue': 'blue'},
+            color_discrete_map={'blue': 'blue', 'yellow': 'yellow', 'orange': 'orange', 'red': 'red'},
             labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
-            title=f"Promedios anuales de {parametro.strip()} en {estacion}"
+            title=(
+                f"Promedios anuales de {parametro.strip()} en {estacion} \n"
+                f"Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
+            )
         )
         st.plotly_chart(fig)
 
@@ -1625,10 +1644,8 @@ try:
         promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
         promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
 
-        # Añadir una columna para definir los colores de las barras
-        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(
-            lambda x: 'green' if x > promedio_general else ('red' if x < promedio_general else 'blue')
-        )
+        # Asignar colores a las barras
+        promedios['Color'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_color)
 
         # Gráfico de barras con colores personalizados
         st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
@@ -1637,9 +1654,12 @@ try:
             x='Mes',
             y=f"Promedio de {parametro.strip()}",
             color='Color',
-            color_discrete_map={'green': 'green', 'red': 'red', 'blue': 'blue'},
+            color_discrete_map={'blue': 'blue', 'yellow': 'yellow', 'orange': 'orange', 'red': 'red'},
             labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
-            title=f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} ({estacion})"
+            title=(
+                f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} \n"
+                f"Estación {estacion} | Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
+            )
         )
         st.plotly_chart(fig)
 
@@ -1647,5 +1667,4 @@ except FileNotFoundError:
     st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
 except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
-
 
