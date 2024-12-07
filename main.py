@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 import io  # Importar StringIO desde io
+import os  # Asegurar la importación de os
+
 
 # URL base del repositorio en GitHub
 github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
