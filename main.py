@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import io  # Importar StringIO desde io
 
 # URL base del repositorio en GitHub
 github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
@@ -19,11 +20,13 @@ def list_files_from_github(folder_path):
 
 # Función para leer un archivo CSV desde GitHub
 def read_csv_from_github(file_path):
+    # Convertir la URL a RAW para obtener el contenido del archivo
     raw_url = file_path.replace("https://github.com", "https://raw.githubusercontent.com").replace("/blob/", "/")
     try:
         response = requests.get(raw_url)
         response.raise_for_status()
-        return pd.read_csv(pd.compat.StringIO(response.text))
+        # Usar io.StringIO para leer el contenido como un CSV
+        return pd.read_csv(io.StringIO(response.text))
     except Exception as e:
         st.error(f"Error al leer {file_path}: {e}")
         return None
@@ -50,6 +53,8 @@ for file in cerca_files:
     df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
     if df is not None:
         st.dataframe(df)
+
+
 
 # Descargar archivos desde enlaces utilizando requests
 def download_files_from_links(file_links, output_dir):
