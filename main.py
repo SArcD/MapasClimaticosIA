@@ -1551,7 +1551,6 @@ if st.button("Calcular interpolación"):
         st.error("No hay datos disponibles para realizar la interpolación.")
 
 #############################################################################
-
 # Seleccionar una estación meteorológica
 estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima, key="estacion_selectbox")
 
@@ -1563,14 +1562,6 @@ parametro = st.selectbox(
     key="parametro_selectbox"
 )
 
-# Asegúrate de que las columnas relevantes sean numéricas
-for col in [' Precipitación(mm)', ' Temperatura Media(ºC)', 
-            ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', 
-            ' Evaporación(mm)']:
-    if col in df.columns:  # Verifica que la columna exista
-        df[col] = pd.to_numeric(df[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
-
-
 # Ruta del archivo de la estación
 archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 
@@ -1580,6 +1571,13 @@ try:
     df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
     df_estacion['Año'] = df_estacion['Fecha'].dt.year
     df_estacion['Mes'] = df_estacion['Fecha'].dt.month
+
+    # Asegúrate de que las columnas relevantes sean numéricas
+    for col in [' Precipitación(mm)', ' Temperatura Media(ºC)', 
+                ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', 
+                ' Evaporación(mm)']:
+        if col in df_estacion.columns:  # Verifica que la columna exista
+            df_estacion[col] = pd.to_numeric(df_estacion[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
