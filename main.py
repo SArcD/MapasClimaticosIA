@@ -1586,7 +1586,7 @@ try:
 
     else:
         # Seleccionar año para análisis mensual
-        ano_seleccionado = st.selectbox("Selecciona el año", df_estacion['Año'].unique())
+        ano_seleccionado = st.selectbox("Elige un año", df_estacion['Año'].unique())
 
         # Filtrar por año seleccionado y calcular promedios mensuales
         df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
