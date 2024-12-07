@@ -105,78 +105,55 @@ import streamlit as st
 import requests
 import os
 
-# Configuración del archivo ACE2
-file_id = "1Y9b9gLF0xb0DVc8enniOnyxPXv8KZUPA"
+#############import requests
+import os
+import streamlit as st
+
+# URL de descarga directa de Dropbox
+url = "https://www.dropbox.com/scl/fi/y61orc7bzt2p2d22sxtcu/Colima_ACE2.ace2?rlkey=8asyjm6pjqjo0z02gofpg9l2b&st=eqnn71an&dl=1"
 file_path = "Colima_ACE2.ace2"
-tile_size = (6000, 6000)
 
-# Función para descargar archivo de Google Drive
-def download_file_from_google_drive(file_id, destination):
-    """
-    Descarga un archivo desde Google Drive usando su file_id.
-    """
+# Descargar el archivo si no existe
+if not os.path.exists(file_path):
+    st.write("Descargando el archivo ACE2 desde Dropbox...")
     try:
-        url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        session = requests.Session()
-        response = session.get(url, stream=True)
-        response.raise_for_status()
-
-        # Manejar confirmación de descargas grandes
-        for key, value in response.cookies.items():
-            if key.startswith("download_warning"):
-                url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
-                response = session.get(url, stream=True)
-                break
-
-        # Escribir el archivo descargado
-        with open(destination, "wb") as f:
-            for chunk in response.iter_content(chunk_size=32768):
-                if chunk:
-                    f.write(chunk)
-
-        st.success(f"Archivo descargado correctamente: {destination}")
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Verificar errores HTTP
+        with open(file_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        st.success("Archivo descargado correctamente.")
     except Exception as e:
-        st.error(f"Error al descargar el archivo de Google Drive: {e}")
-        raise
+        st.error(f"Error al descargar el archivo ACE2: {e}")
 
-# Función para leer archivo ACE2
-def read_ace2(file_path, expected_tile_size):
-    """
-    Lee un archivo ACE2 y valida sus dimensiones.
-    """
+# Leer el archivo y procesarlo
+import numpy as np
+
+def read_ace2(file_path):
+    """Leer archivo ACE2 y determinar dimensiones automáticamente."""
     try:
-        # Leer datos desde el archivo
         data = np.fromfile(file_path, dtype=np.float32)
         size = data.size
         st.write(f"El archivo contiene {size} elementos.")
-
-        # Validar dimensiones
-        if size != np.prod(expected_tile_size):
-            raise ValueError(
-                f"Dimensiones del archivo no coinciden. Tamaño actual: {size}, esperado: {np.prod(expected_tile_size)}"
-            )
-
-        # Ajustar datos a la matriz esperada
-        data = data.reshape(expected_tile_size)
-        st.write(f"Archivo ACE2 cargado correctamente con dimensiones: {data.shape}")
-        return data
+        # Determinar dimensiones cuadradas más cercanas
+        dimension = int(np.sqrt(size))
+        if dimension * dimension == size:
+            return data.reshape((dimension, dimension))
+        else:
+            raise ValueError("El archivo no tiene dimensiones cuadradas.")
     except Exception as e:
-        st.error(f"Error al procesar el archivo ACE2: {e}")
-        raise
+        st.error(f"No se pudo procesar el archivo: {e}")
+        return None
 
-# Descargar y leer archivo ACE2
-if not os.path.exists(file_path):
-    st.write("Descargando el archivo ACE2...")
-    try:
-        download_file_from_google_drive(file_id, file_path)
-    except Exception as e:
-        st.stop()
+# Procesar el archivo ACE2
+if os.path.exists(file_path):
+    elevation_data = read_ace2(file_path)
+    if elevation_data is not None:
+        st.success(f"Archivo procesado correctamente con dimensiones: {elevation_data.shape}.")
+#33
 
-try:
-    elevation_data = read_ace2(file_path, tile_size)
-except Exception as e:
-    st.stop()
 
+#############
 
 # Listas de claves
 claves_colima = [
