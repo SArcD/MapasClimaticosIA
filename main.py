@@ -1706,6 +1706,26 @@ import plotly.graph_objects as go
 
 import plotly.graph_objects as go
 
+# Crear el agrupamiento de estaciones según la cantidad de registros por estación
+agrupamiento_estaciones = {
+    "50-100%": [],
+    "25-50%": [],
+    "0-25%": []
+}
+
+# Calcular el máximo de registros para una estación
+if not df_resultado.empty:
+    max_registros = df_resultado['Clave'].value_counts().max()
+
+    # Crear los grupos
+    for clave, count in df_resultado['Clave'].value_counts().items():
+        if count >= 0.5 * max_registros:
+            agrupamiento_estaciones["50-100%"].append(clave)
+        elif 0.25 * max_registros <= count < 0.5 * max_registros:
+            agrupamiento_estaciones["25-50%"].append(clave)
+        else:
+            agrupamiento_estaciones["0-25%"].append(clave)
+
 # Identificar el grupo de la estación seleccionada
 grupo_seleccionado = None
 for grupo, estaciones in agrupamiento_estaciones.items():
@@ -1720,7 +1740,7 @@ if grupo_seleccionado:
 else:
     df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
 
-# Verificar si hay datos para graficar
+# Continuar con el mapa...
 if not df_filtrado.empty:
     # Crear una figura base con fondo blanco
     fig = go.Figure()
@@ -1752,35 +1772,6 @@ if not df_filtrado.empty:
             )
         )
 
-    # Añadir los polígonos de los municipios desde el archivo GeoJSON
-    for feature in colima_geojson["features"]:
-        geometry = feature["geometry"]
-        if geometry["type"] == "Polygon":
-            for coordinates in geometry["coordinates"]:
-                x_coords, y_coords = zip(*coordinates)
-                fig.add_trace(
-                    go.Scatter(
-                        x=x_coords,
-                        y=y_coords,
-                        mode='lines',
-                        line=dict(color='black', width=1),
-                        showlegend=False
-                    )
-                )
-        elif geometry["type"] == "MultiPolygon":
-            for polygon in geometry["coordinates"]:
-                for coordinates in polygon:
-                    x_coords, y_coords = zip(*coordinates)
-                    fig.add_trace(
-                        go.Scatter(
-                            x=x_coords,
-                            y=y_coords,
-                            mode='lines',
-                            line=dict(color='black', width=1),
-                            showlegend=False
-                        )
-                    )
-
     # Configurar el diseño del gráfico
     fig.update_layout(
         title="Mapa de Estaciones en Colima (Grupo Actual)",
@@ -1803,3 +1794,4 @@ if not df_filtrado.empty:
     st.plotly_chart(fig)
 else:
     st.warning("No hay estaciones en el mismo grupo que la seleccionada para mostrar en el mapa.")
+
