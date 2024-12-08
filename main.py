@@ -1700,6 +1700,7 @@ except FileNotFoundError:
 except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
 
+columna_grafico = parametro
 # Verificar si el DataFrame no está vacío
 if not df_resultado.empty:
     # Filtrar filas con valores no nulos en la columna seleccionada
