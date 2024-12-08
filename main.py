@@ -1709,21 +1709,21 @@ if not df_resultado.empty:
         
         if not df_filtrado.empty:
             # Crear el mapa base con las estaciones
-            fig = px.scatter_mapbox(
-                df_filtrado,
-                lat="Latitud",
-                lon="Longitud",
-                color=columna_grafico,
-                hover_name="Clave",
-                hover_data=["Estado", columna_grafico],
-                title=f"Mapa de estaciones en Colima ({columna_grafico.strip()})",
-                mapbox_style="carto-positron",
-                center={"lat": 19.0, "lon": -104.0},  # Centrado en Colima
-                zoom=8,
-                width=1000,
-                height=600,
-                color_continuous_scale=coolwarm_colorscale  # Escala de colores personalizada
-            )
+            #fig = px.scatter_mapbox(
+            #    df_filtrado,
+            #    lat="Latitud",
+            #    lon="Longitud",
+            #    color=columna_grafico,
+            #    hover_name="Clave",
+            #    hover_data=["Estado", columna_grafico],
+            #    title=f"Mapa de estaciones en Colima ({columna_grafico.strip()})",
+            #    mapbox_style="carto-positron",
+            #    center={"lat": 19.0, "lon": -104.0},  # Centrado en Colima
+            #    zoom=8,
+            #    width=1000,
+            #    height=600,
+            #    color_continuous_scale=coolwarm_colorscale  # Escala de colores personalizada
+            #)
 
             # Cambiar el tamaño de los puntos en el mapa
             fig.update_traces(marker=dict(size=12))
