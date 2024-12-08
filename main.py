@@ -1701,83 +1701,91 @@ except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
 
 columna_grafico = parametro
+import plotly.graph_objects as go
+import plotly.express as px
+
 # Verificar si el DataFrame no está vacío
 if not df_resultado.empty:
-    # Filtrar filas con valores no nulos en la columna seleccionada
-    if columna_grafico in df_resultado.columns:
-        df_filtrado = df_resultado.dropna(subset=[columna_grafico])
-        
-        if not df_filtrado.empty:
-            # Crear el mapa base con las estaciones
-            #fig = px.scatter_mapbox(
-            #    df_filtrado,
-            #    lat="Latitud",
-            #    lon="Longitud",
-            #    color=columna_grafico,
-            #    hover_name="Clave",
-            #    hover_data=["Estado", columna_grafico],
-            #    title=f"Mapa de estaciones en Colima ({columna_grafico.strip()})",
-            #    mapbox_style="carto-positron",
-            #    center={"lat": 19.0, "lon": -104.0},  # Centrado en Colima
-            #    zoom=8,
-            #    width=1000,
-            #    height=600,
-            #    color_continuous_scale=coolwarm_colorscale  # Escala de colores personalizada
-            #)
+    # Filtrar filas con valores no nulos en las columnas de latitud y longitud
+    df_filtrado = df_resultado.dropna(subset=["Latitud", "Longitud"])
+    
+    if not df_filtrado.empty:
+        # Crear una figura base
+        fig = go.Figure()
 
-            # Cambiar el tamaño de los puntos en el mapa
-            fig.update_traces(marker=dict(size=12))
+        # Añadir las estaciones como puntos
+        fig.add_trace(
+            go.Scatter(
+                x=df_filtrado['Longitud'],
+                y=df_filtrado['Latitud'],
+                mode='markers',
+                marker=dict(size=8, color='blue', symbol='circle'),
+                text=df_filtrado['Clave'],
+                hoverinfo='text',
+                name="Estaciones"
+            )
+        )
 
-            # Añadir la estación seleccionada con un asterisco más grande
-            estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
-            if not estacion_seleccionada.empty:
-                fig.add_trace(
-                    go.Scattermapbox(
-                        lat=estacion_seleccionada['Latitud'],
-                        lon=estacion_seleccionada['Longitud'],
-                        mode='markers+text',
-                        marker=dict(size=18, symbol="star", color="gold"),  # Símbolo de estrella dorada
-                        text=["⭐ Estación seleccionada"],
-                        textposition="top center",
-                        showlegend=False
-                    )
+        # Añadir la estación seleccionada con un símbolo destacado
+        estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
+        if not estacion_seleccionada.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=estacion_seleccionada['Longitud'],
+                    y=estacion_seleccionada['Latitud'],
+                    mode='markers+text',
+                    marker=dict(size=14, color='gold', symbol='star'),
+                    text=["⭐ Estación seleccionada"],
+                    textposition='top center',
+                    hoverinfo='text',
+                    name="Estación seleccionada"
                 )
+            )
 
-            # Añadir polígonos de municipios desde el archivo GeoJSON
-            for feature in colima_geojson["features"]:
-                geometry = feature["geometry"]
-                if geometry["type"] == "Polygon":
-                    for coordinates in geometry["coordinates"]:
+        # Añadir los polígonos de los municipios desde el archivo GeoJSON
+        for feature in colima_geojson["features"]:
+            geometry = feature["geometry"]
+            if geometry["type"] == "Polygon":
+                for coordinates in geometry["coordinates"]:
+                    x_coords, y_coords = zip(*coordinates)
+                    fig.add_trace(
+                        go.Scatter(
+                            x=x_coords,
+                            y=y_coords,
+                            mode='lines',
+                            line=dict(color='black', width=1),
+                            showlegend=False
+                        )
+                    )
+            elif geometry["type"] == "MultiPolygon":
+                for polygon in geometry["coordinates"]:
+                    for coordinates in polygon:
                         x_coords, y_coords = zip(*coordinates)
                         fig.add_trace(
-                            go.Scattermapbox(
-                                lon=x_coords,
-                                lat=y_coords,
-                                mode="lines",
-                                line=dict(color="black", width=2),
+                            go.Scatter(
+                                x=x_coords,
+                                y=y_coords,
+                                mode='lines',
+                                line=dict(color='black', width=1),
                                 showlegend=False
                             )
                         )
-                elif geometry["type"] == "MultiPolygon":
-                    for polygon in geometry["coordinates"]:
-                        for coordinates in polygon:
-                            x_coords, y_coords = zip(*coordinates)
-                            fig.add_trace(
-                                go.Scattermapbox(
-                                    lon=x_coords,
-                                    lat=y_coords,
-                                    mode="lines",
-                                    line=dict(color="black", width=2),
-                                    showlegend=False
-                                )
-                            )
 
-            # Mostrar el mapa interactivo
-            st.plotly_chart(fig, use_container_width=True)
+        # Configurar el diseño del gráfico
+        fig.update_layout(
+            title="Mapa de Estaciones en Colima",
+            xaxis_title="Longitud",
+            yaxis_title="Latitud",
+            xaxis=dict(scaleanchor="y", scaleratio=1),  # Escala 1:1 para el mapa
+            yaxis=dict(),
+            showlegend=True,
+            width=800,
+            height=600
+        )
 
-        else:
-            st.warning(f"No hay datos válidos para el parámetro seleccionado: {columna_grafico}.")
+        # Mostrar el gráfico
+        st.plotly_chart(fig)
     else:
-        st.warning("El parámetro seleccionado no está disponible en el DataFrame.")
+        st.warning("No hay datos válidos para graficar el mapa.")
 else:
     st.error("No hay datos disponibles para mostrar en el mapa.")
