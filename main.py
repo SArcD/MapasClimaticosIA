@@ -1701,16 +1701,15 @@ except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
 
 columna_grafico = parametro
-import plotly.graph_objects as go
 import plotly.express as px
-
+import plotly.graph_objects as go
 # Verificar si el DataFrame no está vacío
 if not df_resultado.empty:
     # Filtrar filas con valores no nulos en las columnas de latitud y longitud
     df_filtrado = df_resultado.dropna(subset=["Latitud", "Longitud"])
     
     if not df_filtrado.empty:
-        # Crear una figura base
+        # Crear una figura base con fondo blanco
         fig = go.Figure()
 
         # Añadir las estaciones como puntos
@@ -1778,10 +1777,16 @@ if not df_resultado.empty:
             yaxis_title="Latitud",
             xaxis=dict(scaleanchor="y", scaleratio=1),  # Escala 1:1 para el mapa
             yaxis=dict(),
+            plot_bgcolor="white",  # Fondo blanco
+            paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
             showlegend=True,
             width=800,
             height=600
         )
+
+        # Centrar la vista inicial en la capital de Colima
+        fig.update_xaxes(range=[-104.0, -103.5])  # Ajustar según las coordenadas de Colima
+        fig.update_yaxes(range=[19.0, 19.5])  # Ajustar según las coordenadas de Colima
 
         # Mostrar el gráfico
         st.plotly_chart(fig)
