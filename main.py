@@ -1728,6 +1728,21 @@ if not df_resultado.empty:
             # Cambiar el tamaño de los puntos en el mapa
             fig.update_traces(marker=dict(size=12))
 
+            # Añadir la estación seleccionada con un asterisco más grande
+            estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
+            if not estacion_seleccionada.empty:
+                fig.add_trace(
+                    go.Scattermapbox(
+                        lat=estacion_seleccionada['Latitud'],
+                        lon=estacion_seleccionada['Longitud'],
+                        mode='markers+text',
+                        marker=dict(size=18, symbol="star", color="gold"),  # Símbolo de estrella dorada
+                        text=["⭐ Estación seleccionada"],
+                        textposition="top center",
+                        showlegend=False
+                    )
+                )
+
             # Añadir polígonos de municipios desde el archivo GeoJSON
             for feature in colima_geojson["features"]:
                 geometry = feature["geometry"]
@@ -1766,6 +1781,3 @@ if not df_resultado.empty:
         st.warning("El parámetro seleccionado no está disponible en el DataFrame.")
 else:
     st.error("No hay datos disponibles para mostrar en el mapa.")
-
-
-
