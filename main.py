@@ -1700,4 +1700,71 @@ except FileNotFoundError:
 except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
 
+# Verificar si el DataFrame no está vacío
+if not df_resultado.empty:
+    # Filtrar filas con valores no nulos en la columna seleccionada
+    if columna_grafico in df_resultado.columns:
+        df_filtrado = df_resultado.dropna(subset=[columna_grafico])
+        
+        if not df_filtrado.empty:
+            # Crear el mapa base con las estaciones
+            fig = px.scatter_mapbox(
+                df_filtrado,
+                lat="Latitud",
+                lon="Longitud",
+                color=columna_grafico,
+                hover_name="Clave",
+                hover_data=["Estado", columna_grafico],
+                title=f"Mapa de estaciones en Colima ({columna_grafico.strip()})",
+                mapbox_style="carto-positron",
+                center={"lat": 19.0, "lon": -104.0},  # Centrado en Colima
+                zoom=8,
+                width=1000,
+                height=600,
+                color_continuous_scale=coolwarm_colorscale  # Escala de colores personalizada
+            )
+
+            # Cambiar el tamaño de los puntos en el mapa
+            fig.update_traces(marker=dict(size=12))
+
+            # Añadir polígonos de municipios desde el archivo GeoJSON
+            for feature in colima_geojson["features"]:
+                geometry = feature["geometry"]
+                if geometry["type"] == "Polygon":
+                    for coordinates in geometry["coordinates"]:
+                        x_coords, y_coords = zip(*coordinates)
+                        fig.add_trace(
+                            go.Scattermapbox(
+                                lon=x_coords,
+                                lat=y_coords,
+                                mode="lines",
+                                line=dict(color="black", width=2),
+                                showlegend=False
+                            )
+                        )
+                elif geometry["type"] == "MultiPolygon":
+                    for polygon in geometry["coordinates"]:
+                        for coordinates in polygon:
+                            x_coords, y_coords = zip(*coordinates)
+                            fig.add_trace(
+                                go.Scattermapbox(
+                                    lon=x_coords,
+                                    lat=y_coords,
+                                    mode="lines",
+                                    line=dict(color="black", width=2),
+                                    showlegend=False
+                                )
+                            )
+
+            # Mostrar el mapa interactivo
+            st.plotly_chart(fig, use_container_width=True)
+
+        else:
+            st.warning(f"No hay datos válidos para el parámetro seleccionado: {columna_grafico}.")
+    else:
+        st.warning("El parámetro seleccionado no está disponible en el DataFrame.")
+else:
+    st.error("No hay datos disponibles para mostrar en el mapa.")
+
+
 
