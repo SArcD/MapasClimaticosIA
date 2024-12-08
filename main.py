@@ -1824,7 +1824,7 @@ if not df_filtrado.empty:
         plot_bgcolor="white",  # Fondo blanco
         paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
         legend=dict(
-        font=dict(color='blue'),
+        font=dict(color='blue')),
         showlegend=True,
         width=800,
         height=600
