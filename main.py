@@ -1740,7 +1740,6 @@ if grupo_seleccionado:
 else:
     df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
 
-# Continuar con el mapa...
 if not df_filtrado.empty:
     # Crear una figura base con fondo blanco
     fig = go.Figure()
@@ -1754,7 +1753,8 @@ if not df_filtrado.empty:
             marker=dict(size=8, color='blue', symbol='circle'),
             text=df_filtrado['Clave'],
             hoverinfo='text',
-            name="Estaciones"
+            name="Estaciones",
+            color="blue"
         )
     )
 
@@ -1768,7 +1768,8 @@ if not df_filtrado.empty:
                 mode='markers',
                 marker=dict(size=14, color='gold', symbol='star'),
                 hoverinfo='none',  # Eliminar texto al pasar el cursor
-                name="Estación seleccionada"
+                name="Estación seleccionada",
+                color="blue"
             )
         )
 
