@@ -1634,13 +1634,48 @@ try:
 
     if analisis == "Anual":
         # Calcular promedios anuales y asegurarse de incluir años con 0 registros
-        all_years = pd.Series(range(df_estacion['Año'].min(), df_estacion['Año'].max() + 1))
-        promedios = df_estacion.groupby('Año')[parametro].mean().reindex(all_years, fill_value=0).reset_index()
+        all_years = pd.DataFrame({'Año': range(df_estacion['Año'].min(), df_estacion['Año'].max() + 1)})
+        promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
-        # Gráfico de barras
-        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
-        st.bar_chart(promedios.set_index('Año'))
+        # Combinar con todos los años para incluir años sin datos
+        promedios = all_years.merge(promedios, on='Año', how='left')
+        promedios[f"Promedio de {parametro.strip()}"] = promedios[f"Promedio de {parametro.strip()}"].fillna(0)
+
+        #    Gráfico de barras con espacios para años sin datos
+        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})")
+        fig = go.Figure()
+
+        # Determinar cuartiles para la escala de colores
+        valores_validos = promedios[f"Promedio de {parametro.strip()}"][promedios[f"Promedio de {parametro.strip()}"] > 0]
+        q1, q2, q3 = valores_validos.quantile([0.25, 0.5, 0.75]).values if not valores_validos.empty else (0, 0, 0)
+
+        # Asignar colores según cuartiles
+        for _, row in promedios.iterrows():
+            color = "rgb(49,130,189)"  # Azul para Q1
+            if row[f"Promedio de {parametro.strip()}"] > q3:
+                color = "rgb(214,39,40)"  # Rojo para Q4
+            elif row[f"Promedio de {parametro.strip()}"] > q2:
+                color = "rgb(255,127,14)"  # Naranja para Q3
+            elif row[f"Promedio de {parametro.strip()}"] > q1:
+                color = "rgb(255,215,0)"  # Amarillo para Q2
+
+            fig.add_trace(go.Bar(
+                x=[row['Año']],
+                y=[row[f"Promedio de {parametro.strip()}"]],
+                marker_color=color,
+                name=f"Año {int(row['Año'])}"
+            ))
+
+        # Configuración del gráfico
+        fig.update_layout(
+            title=f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})",
+            xaxis_title="Año",
+            yaxis_title=f"Promedio de {parametro.strip()}",
+            showlegend=False
+        )
+
+        st.plotly_chart(fig)
 
     else:
         # Seleccionar año para análisis mensual
