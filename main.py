@@ -1552,21 +1552,39 @@ if st.button("Calcular interpolación"):
 
 #############################################################################
 
+# Parámetro a graficar
+parametro = st.selectbox(
+    "Selecciona el parámetro para graficar",
+    [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
+     ' Temperatura Mínima(ºC)', ' Evaporación(mm)'],
+    key="parametro_selectbox"
+)
 
-# Calcular la cantidad de registros por estación
+# Calcular la cantidad de registros válidos por estación para el parámetro seleccionado
 estaciones_datos = {}
 for estacion in claves_colima:
     archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
     if os.path.exists(archivo_estacion):
         try:
             df_estacion = pd.read_csv(archivo_estacion)
-            estaciones_datos[estacion] = len(df_estacion)
+            df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
+            
+            # Asegurar que el parámetro es numérico
+            if parametro in df_estacion.columns:
+                df_estacion[parametro] = pd.to_numeric(
+                    df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
+                )
+                # Contar solo registros válidos (no vacíos y no cero)
+                registros_validos = df_estacion[parametro][(df_estacion[parametro] > 0)].count()
+                estaciones_datos[estacion] = registros_validos
+            else:
+                estaciones_datos[estacion] = 0
         except Exception as e:
             st.warning(f"Error al procesar la estación {estacion}: {e}")
     else:
         estaciones_datos[estacion] = 0
 
-# Identificar la estación con más registros
+# Identificar la estación con más registros válidos
 estacion_max_datos = max(estaciones_datos, key=estaciones_datos.get)
 max_datos = estaciones_datos[estacion_max_datos]
 
@@ -1577,17 +1595,17 @@ rango_menos_25 = (0, max_datos * 0.25)
 
 # Clasificar estaciones en grupos
 grupos_estaciones = {
-    "100% - 50% de registros": [est for est, datos in estaciones_datos.items() if rango_100_50[0] <= datos <= rango_100_50[1]],
-    "50% - 25% de registros": [est for est, datos in estaciones_datos.items() if rango_50_25[0] <= datos < rango_50_25[1]],
-    "Menos del 25% de registros": [est for est, datos in estaciones_datos.items() if rango_menos_25[0] <= datos < rango_menos_25[1]],
+    "100% - 50% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_100_50[0] <= datos <= rango_100_50[1]],
+    "50% - 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_50_25[0] <= datos < rango_50_25[1]],
+    "Menos del 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_menos_25[0] <= datos < rango_menos_25[1]],
 }
 
 # Mostrar un resumen de los grupos
-st.subheader("Resumen de las estaciones por cantidad de datos")
-st.write(f"Estación con más registros: {estacion_max_datos} ({max_datos} registros)")
+st.subheader("Resumen de las estaciones por cantidad de datos válidos")
+st.write(f"Estación con más registros válidos: {estacion_max_datos} ({max_datos} registros válidos)")
 
 # Menú desplegable para seleccionar el grupo
-grupo_seleccionado = st.selectbox("Selecciona el grupo de estaciones según cantidad de datos", list(grupos_estaciones.keys()), key="grupo_selectbox")
+grupo_seleccionado = st.selectbox("Selecciona el grupo de estaciones según cantidad de datos válidos", list(grupos_estaciones.keys()), key="grupo_selectbox")
 
 # Filtrar estaciones según el grupo seleccionado
 estaciones_filtradas = grupos_estaciones[grupo_seleccionado]
@@ -1595,38 +1613,29 @@ estaciones_filtradas = grupos_estaciones[grupo_seleccionado]
 # Nuevo menú desplegable con estaciones filtradas
 estacion = st.selectbox("Selecciona una estación meteorológica", estaciones_filtradas, key="estacion_filtrada_selectbox")
 
-# Continuar con el análisis para la estación seleccionada
-# Parámetro a graficar
-parametro = st.selectbox(
-    "Selecciona el parámetro para graficar",
-    [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
-     ' Temperatura Mínima(ºC)', ' Evaporación(mm)'],
-    key="parametro_selectbox"
-)
-
 # Ruta del archivo de la estación seleccionada
 archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 
-# Leer el archivo CSV de la estación
+# Leer el archivo CSV de la estación seleccionada
 try:
     df_estacion = pd.read_csv(archivo_estacion)
     df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
     df_estacion['Año'] = df_estacion['Fecha'].dt.year
     df_estacion['Mes'] = df_estacion['Fecha'].dt.month
 
-    # Asegúrate de que las columnas relevantes sean numéricas
-    for col in [' Precipitación(mm)', ' Temperatura Media(ºC)', 
-                ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', 
-                ' Evaporación(mm)']:
-        if col in df_estacion.columns:  # Verifica que la columna exista
-            df_estacion[col] = pd.to_numeric(df_estacion[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
+    # Asegurar que el parámetro es numérico
+    if parametro in df_estacion.columns:
+        df_estacion[parametro] = pd.to_numeric(
+            df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
+        )
 
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
 
     if analisis == "Anual":
-        # Calcular promedios anuales
-        promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
+        # Calcular promedios anuales y asegurarse de incluir años con 0 registros
+        all_years = pd.Series(range(df_estacion['Año'].min(), df_estacion['Año'].max() + 1))
+        promedios = df_estacion.groupby('Año')[parametro].mean().reindex(all_years, fill_value=0).reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
         # Gráfico de barras
@@ -1643,7 +1652,8 @@ try:
 
         # Filtrar por año seleccionado y calcular promedios mensuales
         df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
-        promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
+        all_months = pd.Series(range(1, 13))
+        promedios = df_anual.groupby('Mes')[parametro].mean().reindex(all_months, fill_value=0).reset_index()
         promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
 
         # Gráfico de barras
@@ -1654,4 +1664,5 @@ except FileNotFoundError:
     st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
 except Exception as e:
     st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
+
 
