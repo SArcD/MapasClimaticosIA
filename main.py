@@ -1753,8 +1753,7 @@ if not df_filtrado.empty:
             marker=dict(size=8, color='blue', symbol='circle'),
             text=df_filtrado['Clave'],
             hoverinfo='text',
-            name="Estaciones",
-            color="blue"
+            name="Estaciones"
         )
     )
 
@@ -1768,8 +1767,7 @@ if not df_filtrado.empty:
                 mode='markers',
                 marker=dict(size=14, color='gold', symbol='star'),
                 hoverinfo='none',  # Eliminar texto al pasar el cursor
-                name="Estación seleccionada",
-                color="blue"
+                name="Estación seleccionada"
             )
         )
 
@@ -1825,6 +1823,8 @@ if not df_filtrado.empty:
         ),
         plot_bgcolor="white",  # Fondo blanco
         paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
+        legend=dict(
+        font=dict(color='blue'),
         showlegend=True,
         width=800,
         height=600
