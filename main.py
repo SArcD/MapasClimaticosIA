@@ -1772,13 +1772,56 @@ if not df_filtrado.empty:
             )
         )
 
+    # Añadir los polígonos de los municipios desde GeoJSON
+    for feature in colima_geojson["features"]:
+        geometry = feature["geometry"]
+        properties = feature["properties"]
+
+        # Excluir islas si es necesario
+        if "isla" not in properties.get("name", "").lower():
+            if geometry["type"] == "Polygon":
+                for coordinates in geometry["coordinates"]:
+                    x_coords, y_coords = zip(*coordinates)
+                    fig.add_trace(
+                        go.Scatter(
+                            x=x_coords,
+                            y=y_coords,
+                            mode="lines",
+                            line=dict(color="black", width=1.5),
+                            showlegend=False
+                        )
+                    )
+            elif geometry["type"] == "MultiPolygon":
+                for polygon in geometry["coordinates"]:
+                    for coordinates in polygon:
+                        x_coords, y_coords = zip(*coordinates)
+                        fig.add_trace(
+                            go.Scatter(
+                                x=x_coords,
+                                y=y_coords,
+                                mode="lines",
+                                line=dict(color="black", width=1.5),
+                                showlegend=False
+                            )
+                        )
+
     # Configurar el diseño del gráfico
     fig.update_layout(
         title="Mapa de Estaciones en Colima (Grupo Actual)",
         xaxis_title="Longitud",
         yaxis_title="Latitud",
-        xaxis=dict(scaleanchor="y", scaleratio=1, showgrid=False, title_font=dict(color='blue')),  # Texto azul en eje X
-        yaxis=dict(showgrid=False, title_font=dict(color='blue')),  # Texto azul en eje Y
+        xaxis=dict(
+            scaleanchor="y",
+            scaleratio=1,
+            showgrid=False,
+            title_font=dict(color='blue'),
+            tickfont=dict(color='blue')  # Ticks azules en el eje X
+        ),
+        yaxis=dict(
+            showgrid=False,
+            title_font=dict(color='blue'),
+            tickfont=dict(color='blue')  # Ticks azules en el eje Y
+        ),
         plot_bgcolor="white",  # Fondo blanco
         paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
         showlegend=True,
@@ -1787,11 +1830,8 @@ if not df_filtrado.empty:
     )
 
     # Centrar la vista inicial en la capital de Colima
-    fig.update_xaxes(range=[-104.0, -103.5])  # Ajustar según las coordenadas de Colima
-    fig.update_yaxes(range=[19.0, 19.5])  # Ajustar según las coordenadas de Colima
+    fig.update_xaxes(range=[-104.5, -103.5])  # Ajustar según las coordenadas de Colima
+    fig.update_yaxes(range=[18.5, 19.5])  # Ajustar según las coordenadas de Colima
 
     # Mostrar el gráfico
     st.plotly_chart(fig)
-else:
-    st.warning("No hay estaciones en el mismo grupo que la seleccionada para mostrar en el mapa.")
-
