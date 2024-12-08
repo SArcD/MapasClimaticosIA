@@ -1703,49 +1703,72 @@ except Exception as e:
 columna_grafico = parametro
 import plotly.express as px
 import plotly.graph_objects as go
-# Verificar si el DataFrame no está vacío
-if not df_resultado.empty:
-    # Filtrar filas con valores no nulos en las columnas de latitud y longitud
-    df_filtrado = df_resultado.dropna(subset=["Latitud", "Longitud"])
-    
-    if not df_filtrado.empty:
-        # Crear una figura base con fondo blanco
-        fig = go.Figure()
 
-        # Añadir las estaciones como puntos
+import plotly.graph_objects as go
+
+# Identificar el grupo de la estación seleccionada
+grupo_seleccionado = None
+for grupo, estaciones in agrupamiento_estaciones.items():
+    if estacion in estaciones:
+        grupo_seleccionado = grupo
+        break
+
+# Filtrar las estaciones que están en el mismo grupo que la estación seleccionada
+if grupo_seleccionado:
+    df_filtrado = df_resultado[df_resultado['Clave'].isin(agrupamiento_estaciones[grupo_seleccionado])]
+else:
+    df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
+
+# Verificar si hay datos para graficar
+if not df_filtrado.empty:
+    # Crear una figura base con fondo blanco
+    fig = go.Figure()
+
+    # Añadir las estaciones como puntos
+    fig.add_trace(
+        go.Scatter(
+            x=df_filtrado['Longitud'],
+            y=df_filtrado['Latitud'],
+            mode='markers',
+            marker=dict(size=8, color='blue', symbol='circle'),
+            text=df_filtrado['Clave'],
+            hoverinfo='text',
+            name="Estaciones"
+        )
+    )
+
+    # Añadir la estación seleccionada con un símbolo destacado
+    estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
+    if not estacion_seleccionada.empty:
         fig.add_trace(
             go.Scatter(
-                x=df_filtrado['Longitud'],
-                y=df_filtrado['Latitud'],
+                x=estacion_seleccionada['Longitud'],
+                y=estacion_seleccionada['Latitud'],
                 mode='markers',
-                marker=dict(size=8, color='blue', symbol='circle'),
-                text=df_filtrado['Clave'],
-                hoverinfo='text',
-                name="Estaciones"
+                marker=dict(size=14, color='gold', symbol='star'),
+                hoverinfo='none',  # Eliminar texto al pasar el cursor
+                name="Estación seleccionada"
             )
         )
 
-        # Añadir la estación seleccionada con un símbolo destacado
-        estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
-        if not estacion_seleccionada.empty:
-            fig.add_trace(
-                go.Scatter(
-                    x=estacion_seleccionada['Longitud'],
-                    y=estacion_seleccionada['Latitud'],
-                    mode='markers+text',
-                    marker=dict(size=14, color='gold', symbol='star'),
-                    text=["⭐ Estación seleccionada"],
-                    textposition='top center',
-                    hoverinfo='text',
-                    name="Estación seleccionada"
+    # Añadir los polígonos de los municipios desde el archivo GeoJSON
+    for feature in colima_geojson["features"]:
+        geometry = feature["geometry"]
+        if geometry["type"] == "Polygon":
+            for coordinates in geometry["coordinates"]:
+                x_coords, y_coords = zip(*coordinates)
+                fig.add_trace(
+                    go.Scatter(
+                        x=x_coords,
+                        y=y_coords,
+                        mode='lines',
+                        line=dict(color='black', width=1),
+                        showlegend=False
+                    )
                 )
-            )
-
-        # Añadir los polígonos de los municipios desde el archivo GeoJSON
-        for feature in colima_geojson["features"]:
-            geometry = feature["geometry"]
-            if geometry["type"] == "Polygon":
-                for coordinates in geometry["coordinates"]:
+        elif geometry["type"] == "MultiPolygon":
+            for polygon in geometry["coordinates"]:
+                for coordinates in polygon:
                     x_coords, y_coords = zip(*coordinates)
                     fig.add_trace(
                         go.Scatter(
@@ -1756,41 +1779,27 @@ if not df_resultado.empty:
                             showlegend=False
                         )
                     )
-            elif geometry["type"] == "MultiPolygon":
-                for polygon in geometry["coordinates"]:
-                    for coordinates in polygon:
-                        x_coords, y_coords = zip(*coordinates)
-                        fig.add_trace(
-                            go.Scatter(
-                                x=x_coords,
-                                y=y_coords,
-                                mode='lines',
-                                line=dict(color='black', width=1),
-                                showlegend=False
-                            )
-                        )
 
-        # Configurar el diseño del gráfico
-        fig.update_layout(
-            title="Mapa de Estaciones en Colima",
-            xaxis_title="Longitud",
-            yaxis_title="Latitud",
-            xaxis=dict(scaleanchor="y", scaleratio=1),  # Escala 1:1 para el mapa
-            yaxis=dict(),
-            plot_bgcolor="white",  # Fondo blanco
-            paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
-            showlegend=True,
-            width=800,
-            height=600
-        )
+    # Configurar el diseño del gráfico
+    fig.update_layout(
+        title="Mapa de Estaciones en Colima (Grupo Actual)",
+        xaxis_title="Longitud",
+        yaxis_title="Latitud",
+        xaxis=dict(scaleanchor="y", scaleratio=1, showgrid=False, title_font=dict(color='blue')),  # Texto azul en eje X
+        yaxis=dict(showgrid=False, title_font=dict(color='blue')),  # Texto azul en eje Y
+        plot_bgcolor="white",  # Fondo blanco
+        paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
+        showlegend=True,
+        width=800,
+        height=600
+    )
 
-        # Centrar la vista inicial en la capital de Colima
-        fig.update_xaxes(range=[-104.0, -103.5])  # Ajustar según las coordenadas de Colima
-        fig.update_yaxes(range=[19.0, 19.5])  # Ajustar según las coordenadas de Colima
+    # Centrar la vista inicial en la capital de Colima
+    fig.update_xaxes(range=[-104.0, -103.5])  # Ajustar según las coordenadas de Colima
+    fig.update_yaxes(range=[19.0, 19.5])  # Ajustar según las coordenadas de Colima
 
-        # Mostrar el gráfico
-        st.plotly_chart(fig)
-    else:
-        st.warning("No hay datos válidos para graficar el mapa.")
+    # Mostrar el gráfico
+    st.plotly_chart(fig)
 else:
-    st.error("No hay datos disponibles para mostrar en el mapa.")
+    st.warning("No hay estaciones en el mismo grupo que la seleccionada para mostrar en el mapa.")
+
