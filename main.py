@@ -1553,11 +1553,49 @@ if st.button("Calcular interpolación"):
 #############################################################################
 
 
-import plotly.express as px
+# Calcular la cantidad de registros por estación
+estaciones_datos = {}
+for estacion in claves_colima:
+    archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
+    if os.path.exists(archivo_estacion):
+        try:
+            df_estacion = pd.read_csv(archivo_estacion)
+            estaciones_datos[estacion] = len(df_estacion)
+        except Exception as e:
+            st.warning(f"Error al procesar la estación {estacion}: {e}")
+    else:
+        estaciones_datos[estacion] = 0
 
-# Seleccionar una estación meteorológica
-estacion = st.selectbox("Selecciona una estación meteorológica", claves_colima, key="estacion_selectbox")
+# Identificar la estación con más registros
+estacion_max_datos = max(estaciones_datos, key=estaciones_datos.get)
+max_datos = estaciones_datos[estacion_max_datos]
 
+# Definir los rangos de grupos
+rango_100_50 = (max_datos * 0.5, max_datos)
+rango_50_25 = (max_datos * 0.25, max_datos * 0.5)
+rango_menos_25 = (0, max_datos * 0.25)
+
+# Clasificar estaciones en grupos
+grupos_estaciones = {
+    "100% - 50% de registros": [est for est, datos in estaciones_datos.items() if rango_100_50[0] <= datos <= rango_100_50[1]],
+    "50% - 25% de registros": [est for est, datos in estaciones_datos.items() if rango_50_25[0] <= datos < rango_50_25[1]],
+    "Menos del 25% de registros": [est for est, datos in estaciones_datos.items() if rango_menos_25[0] <= datos < rango_menos_25[1]],
+}
+
+# Mostrar un resumen de los grupos
+st.subheader("Resumen de las estaciones por cantidad de datos")
+st.write(f"Estación con más registros: {estacion_max_datos} ({max_datos} registros)")
+
+# Menú desplegable para seleccionar el grupo
+grupo_seleccionado = st.selectbox("Selecciona el grupo de estaciones según cantidad de datos", list(grupos_estaciones.keys()), key="grupo_selectbox")
+
+# Filtrar estaciones según el grupo seleccionado
+estaciones_filtradas = grupos_estaciones[grupo_seleccionado]
+
+# Nuevo menú desplegable con estaciones filtradas
+estacion = st.selectbox("Selecciona una estación meteorológica", estaciones_filtradas, key="estacion_filtrada_selectbox")
+
+# Continuar con el análisis para la estación seleccionada
 # Parámetro a graficar
 parametro = st.selectbox(
     "Selecciona el parámetro para graficar",
@@ -1566,7 +1604,7 @@ parametro = st.selectbox(
     key="parametro_selectbox"
 )
 
-# Ruta del archivo de la estación
+# Ruta del archivo de la estación seleccionada
 archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 
 # Leer el archivo CSV de la estación
@@ -1583,41 +1621,6 @@ try:
         if col in df_estacion.columns:  # Verifica que la columna exista
             df_estacion[col] = pd.to_numeric(df_estacion[col].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce')
 
-    # Obtener mediana del parámetro seleccionado
-    mediana_parametro = df_estacion[parametro].median()
-
-    # Obtener latitud y longitud de la estación
-    latitud = df_estacion['Latitud'].iloc[0] if 'Latitud' in df_estacion.columns else "No disponible"
-    longitud = df_estacion['Longitud'].iloc[0] if 'Longitud' in df_estacion.columns else "No disponible"
-
-    # Calcular los cuartiles para el parámetro seleccionado
-    cuartiles = df_estacion[parametro].quantile([0.25, 0.5, 0.75]).to_dict()
-
-    # Función para asignar colores basados en cuartiles
-    #def asignar_cuartil(valor):
-    #    if valor <= cuartiles[0.25]:  # Cuartil 1
-    #        return 'Cuartil 1 (Más Bajo)'
-    #    elif valor <= cuartiles[0.5]:  # Cuartil 2
-    #        return 'Cuartil 2'
-    #    elif valor <= cuartiles[0.75]:  # Cuartil 3
-    #        return 'Cuartil 3'
-    #    else:  # Cuartil 4
-    #        return 'Cuartil 4 (Más Alto)'
-
-
-    # Función para asignar colores basados en cuartiles con etiquetas descriptivas
-    def asignar_cuartil(valor):
-        if valor <= cuartiles[0.25]:  # Cuartil 1
-            return 'Temperatura muy baja (Cuartil 1)'
-        elif valor <= cuartiles[0.5]:  # Cuartil 2
-            return 'Temperatura baja (Cuartil 2)'
-        elif valor <= cuartiles[0.75]:  # Cuartil 3
-            return 'Temperatura alta (Cuartil 3)'
-        else:  # Cuartil 4
-            return 'Temperatura muy alta (Cuartil 4)'
-
-
-
     # Opciones de análisis: anual o mensual
     analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
 
@@ -1626,30 +1629,9 @@ try:
         promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
         promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
 
-        # Asignar cuartiles a las barras
-        promedios['Cuartil'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_cuartil)
-
-        # Gráfico de barras con cuartiles personalizados
-        st.subheader(f"Anuales de {parametro.strip()} en la estación {estacion}")
-        fig = px.bar(
-            promedios,
-            x='Año',
-            y=f"Promedio de {parametro.strip()}",
-            color='Cuartil',
-            # Mapa de colores actualizado
-            color_discrete_map = {
-                'Temperatura muy baja (Cuartil 1)': 'blue',
-                'Temperatura baja (Cuartil 2)': 'yellow',
-                'Temperatura alta (Cuartil 3)': 'orange',
-                'Temperatura muy alta (Cuartil 4)': 'red'
-            },
-            labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
-            title=(
-                f"Anuales de {parametro.strip()} en {estacion} \n"
-                f"Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
-            )
-        )
-        st.plotly_chart(fig)
+        # Gráfico de barras
+        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion}")
+        st.bar_chart(promedios.set_index('Año'))
 
     else:
         # Seleccionar año para análisis mensual
@@ -1664,29 +1646,9 @@ try:
         promedios = df_anual.groupby('Mes')[parametro].mean().reset_index()
         promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
 
-        # Asignar cuartiles a las barras
-        promedios['Cuartil'] = promedios[f"Promedio de {parametro.strip()}"].apply(asignar_cuartil)
-
-        # Gráfico de barras con cuartiles personalizados
-        st.subheader(f"Mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
-        fig = px.bar(
-            promedios,
-            x='Mes',
-            y=f"Promedio de {parametro.strip()}",
-            color='Cuartil',
-            color_discrete_map={
-                'Cuartil 1 (Más Bajo)': 'blue',
-                'Cuartil 2': 'yellow',
-                'Cuartil 3': 'orange',
-                'Cuartil 4 (Más Alto)': 'red'
-            },
-            labels={f"Promedio de {parametro.strip()}": f"{parametro.strip()}"},
-            title=(
-                f"Mensuales de {parametro.strip()} en {ano_seleccionado} \n"
-                f"Estación {estacion} | Mediana: {mediana_parametro:.2f} | Coordenadas: ({latitud}, {longitud})"
-            )
-        )
-        st.plotly_chart(fig)
+        # Gráfico de barras
+        st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
+        st.bar_chart(promedios.set_index('Mes'))
 
 except FileNotFoundError:
     st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
