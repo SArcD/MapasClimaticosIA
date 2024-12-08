@@ -1713,9 +1713,10 @@ for grupo, estaciones in agrupamiento_estaciones.items():
         grupo_seleccionado = grupo
         break
 
-# Filtrar las estaciones que están en el mismo grupo que la estación seleccionada
+# Verificar si el grupo seleccionado existe y filtrar las estaciones
 if grupo_seleccionado:
-    df_filtrado = df_resultado[df_resultado['Clave'].isin(agrupamiento_estaciones[grupo_seleccionado])]
+    estaciones_del_grupo = agrupamiento_estaciones[grupo_seleccionado]
+    df_filtrado = df_resultado[df_resultado['Clave'].isin(estaciones_del_grupo)].dropna(subset=["Latitud", "Longitud"])
 else:
     df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
 
@@ -1802,4 +1803,3 @@ if not df_filtrado.empty:
     st.plotly_chart(fig)
 else:
     st.warning("No hay estaciones en el mismo grupo que la seleccionada para mostrar en el mapa.")
-
