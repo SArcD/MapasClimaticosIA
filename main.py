@@ -564,6 +564,13 @@ if not df_resultado.empty:
         df_filtrado = df_resultado.dropna(subset=[columna_grafico])
         #df_filtrado = df_resultado
         if not df_filtrado.empty:
+            #c
+            # Ajustar el título dinámicamente según la selección de mes
+            if mes == 0:
+                titulo_mes = "Promedio Anual"
+            else:
+                titulo_mes = f"Mes {mes}"
+
             # Crear el mapa base con las estaciones
             fig = px.scatter_mapbox(
                 df_filtrado,
@@ -572,75 +579,59 @@ if not df_resultado.empty:
                 color=columna_grafico,
                 hover_name="Clave",
                 hover_data=["Estado", columna_grafico],
-                title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+                title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
                 mapbox_style="carto-positron",
                 center={"lat": 19.0, "lon": -104.0},  # Ajusta el centro del mapa según sea necesario
                 zoom=8,
                 width=1000,
                 height=600,
                 color_continuous_scale=coolwarm_colorscale   # Usar escala coolwarm personalizada
-            )
+                )
 
-            # Ajustar el título dinámicamente según la selección de mes
-            if mes == 0:
-                titulo_mes = "Promedio Anual"
-            else:
-                titulo_mes = f"Mes {mes}"
-
-            # Configuración del título del gráfico
+                # Configuración del diseño del gráfico
             fig.update_layout(
-            title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, mes {mes})",
-            xaxis_title="Longitud",
-            yaxis_title="Latitud",
-            margin=dict(l=0, r=0, t=50, b=0)
-            )
+                title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+                margin=dict(l=0, r=0, t=50, b=0)
+                )
 
             # Cambiar tamaño de los puntos
             fig.update_traces(marker=dict(size=12))  # Ajusta el tamaño como desees
-
+    
             # Añadir los polígonos de los municipios como trazas adicionales
             for feature in colima_geojson["features"]:
                 geometry = feature["geometry"]
                 properties = feature["properties"]
 
-                # Excluir islas si es necesario
-                if "isla" not in properties.get("name", "").lower():
-                    if geometry["type"] == "Polygon":
-                        for coordinates in geometry["coordinates"]:
+            # Excluir islas si es necesario
+            if "isla" not in properties.get("name", "").lower():
+                if geometry["type"] == "Polygon":
+                    for coordinates in geometry["coordinates"]:
+                        x_coords, y_coords = zip(*coordinates)
+                        fig.add_trace(
+                        go.Scattermapbox(
+                        lon=x_coords,
+                        lat=y_coords,
+                        mode="lines",
+                        line=dict(color="black", width=2),
+                        showlegend=False
+                        )
+                    )
+                elif geometry["type"] == "MultiPolygon":
+                    for polygon in geometry["coordinates"]:
+                        for coordinates in polygon:
                             x_coords, y_coords = zip(*coordinates)
                             fig.add_trace(
-                                go.Scattermapbox(
-                                    lon=x_coords,
-                                    lat=y_coords,
-                                    mode="lines",
-                                    line=dict(color="black", width=2),
-                                    showlegend=False
-                                )
+                             go.Scattermapbox(
+                            lon=x_coords,
+                            lat=y_coords,
+                            mode="lines",
+                            line=dict(color="black", width=2),
+                            showlegend=False
                             )
-                    elif geometry["type"] == "MultiPolygon":
-                        for polygon in geometry["coordinates"]:
-                            for coordinates in polygon:
-                                x_coords, y_coords = zip(*coordinates)
-                                fig.add_trace(
-                                    go.Scattermapbox(
-                                        lon=x_coords,
-                                        lat=y_coords,
-                                        mode="lines",
-                                        line=dict(color="black", width=2),
-                                        showlegend=False
-                                    )
-                                )
+                        )
 
-            # Mostrar el mapa
+                # Mostrar el mapa
             st.plotly_chart(fig, use_container_width=True)
-            # Exportar el gráfico a un archivo PNG con 300 DPI
-            #fig.write_image("chart_300dpi.png", format="png", width=1200, height=900, scale=3)
-            # Exportar a SVG
-            #fig.write_image("chart.svg", format="svg")
-
-            # Convertir a PNG con 300 DPI usando cairosvg
-            #cairosvg.svg2png(url="chart.svg", write_to="chart_300dpi.png", dpi=300)
-
 
         else:
             st.warning(f"No hay estaciones con datos válidos en la columna '{columna_grafico}'.")
