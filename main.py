@@ -602,34 +602,36 @@ if not df_resultado.empty:
                 geometry = feature["geometry"]
                 properties = feature["properties"]
 
-            # Excluir islas si es necesario
-            if "isla" not in properties.get("name", "").lower():
-                if geometry["type"] == "Polygon":
-                    for coordinates in geometry["coordinates"]:
-                        x_coords, y_coords = zip(*coordinates)
-                        fig.add_trace(
-                        go.Scattermapbox(
-                        lon=x_coords,
-                        lat=y_coords,
-                        mode="lines",
-                        line=dict(color="black", width=2),
-                        showlegend=False
-                        )
-                    )
-                elif geometry["type"] == "MultiPolygon":
-                    for polygon in geometry["coordinates"]:
-                        for coordinates in polygon:
+                # Excluir islas si es necesario
+                if "isla" not in properties.get("name", "").lower():
+                    if geometry["type"] == "Polygon":
+                        for coordinates in geometry["coordinates"]:
                             x_coords, y_coords = zip(*coordinates)
                             fig.add_trace(
-                             go.Scattermapbox(
-                            lon=x_coords,
-                            lat=y_coords,
-                            mode="lines",
-                            line=dict(color="black", width=2),
-                            showlegend=False
+                                go.Scattermapbox(
+                                    lon=x_coords,
+                                    lat=y_coords,
+                                    mode="lines",
+                                    line=dict(color="black", width=2),
+                                    showlegend=False
+                                )
                             )
-                        )
+                    elif geometry["type"] == "MultiPolygon":
+                        for polygon in geometry["coordinates"]:
+                            for coordinates in polygon:
+                                x_coords, y_coords = zip(*coordinates)
+                                fig.add_trace(
+                                    go.Scattermapbox(
+                                        lon=x_coords,
+                                        lat=y_coords,
+                                        mode="lines",
+                                        line=dict(color="black", width=2),
+                                        showlegend=False
+                                    )
+                                )
 
+
+            
                 # Mostrar el mapa
             st.plotly_chart(fig, use_container_width=True)
 
