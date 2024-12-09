@@ -581,6 +581,20 @@ if not df_resultado.empty:
                 color_continuous_scale=coolwarm_colorscale   # Usar escala coolwarm personalizada
             )
 
+            # Ajustar el título dinámicamente según la selección de mes
+            if mes == 0:
+                titulo_mes = "Promedio Anual"
+            else:
+                titulo_mes = f"Mes {mes}"
+
+            # Configuración del título del gráfico
+            fig.update_layout(
+            title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+            xaxis_title="Longitud",
+            yaxis_title="Latitud",
+            margin=dict(l=0, r=0, t=50, b=0)
+            )
+
             # Cambiar tamaño de los puntos
             fig.update_traces(marker=dict(size=12))  # Ajusta el tamaño como desees
 
