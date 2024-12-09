@@ -1464,6 +1464,20 @@ if not df_resultado.empty:
             margin=dict(l=20, r=20, t=50, b=20)
         )
 
+                    # Ajustar el título dinámicamente según la selección de mes
+        if mes == 0:
+            titulo_mes = "Promedio Anual"
+        else:
+            titulo_mes = f"Mes {mes}"
+
+        # Configuración del título del gráfico
+        fig.update_layout(
+        title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+        xaxis_title="Longitud",
+        yaxis_title="Latitud",
+        margin=dict(l=0, r=0, t=50, b=0)
+        )
+
         # Mostrar gráfico
         st.plotly_chart(fig, use_container_width=True)
     else:
