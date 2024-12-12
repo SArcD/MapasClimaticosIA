@@ -2043,6 +2043,25 @@ try:
     df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
     st.success("Archivo consolidado con datos imputados guardado correctamente.")
 
+    from fbprophet import Prophet
+
+    # Seleccionar los datos para una estación y variable
+    df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
+    df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'})
+
+    # Crear y entrenar el modelo
+    modelo = Prophet()
+    modelo.fit(df_estacion)
+
+    # Generar predicciones futuras
+    futuro = modelo.make_future_dataframe(periods=365)  # Predicciones para 1 año
+    predicciones = modelo.predict(futuro)
+
+    # Visualizar resultados
+    modelo.plot(predicciones)
+
+
+
 except Exception as e:
     st.error(f"Error en el flujo de procesamiento: {e}")
 
