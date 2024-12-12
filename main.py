@@ -1887,61 +1887,56 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                 try:
                     # Leer datos de la estación
                     df = pd.read_csv(archivo)
-
-                    # Convertir la columna 'Fecha' a formato datetime
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+                    df['Año'] = df['Fecha'].dt.year
+                    df['Mes'] = df['Fecha'].dt.month
 
-                    # Asegurar que las columnas 'Año' y 'Mes' existen y están correctas
-                    df['Año'] = df['Fecha'].dt.year if 'Año' not in df.columns else df['Año']
-                    df['Mes'] = df['Fecha'].dt.month if 'Mes' not in df.columns else df['Mes']
-
-                    # Asegurar que la clave se mantenga como texto
-                    df['Clave'] = clave
-                    df['Clave'] = df['Clave'].astype(str)
-
-                    # Seleccionar solo columnas numéricas
-                    columnas_numericas = df.select_dtypes(include=['number']).columns.tolist()
-
-                    # Excluir columnas que no sean relevantes para los cálculos
-                    columnas_numericas = [col for col in columnas_numericas if col not in ['Latitud', 'Longitud']]
+                    # Limpiar columnas numéricas
+                    for col in df.columns:
+                        if col not in ['Fecha', 'Latitud', 'Longitud']:  # Excluir columnas no numéricas
+                            df[col] = pd.to_numeric(
+                                df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
+                                errors='coerce'
+                            )
 
                     # Calcular promedios anuales y mensuales
-                    if columnas_numericas:
-                        promedios = df.groupby(['Año', 'Mes'])[columnas_numericas].mean().reset_index()
+                    promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
 
-                        # Agregar información geoespacial
-                        latitud = df['Latitud'].iloc[0] if 'Latitud' in df.columns else np.nan
-                        longitud = df['Longitud'].iloc[0] if 'Longitud' in df.columns else np.nan
+                    # Agregar información geoespacial
+                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                        latitud = df['Latitud'].iloc[0]
+                        longitud = df['Longitud'].iloc[0]
                         elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
-
-                        # Identificar el estado de la estación
-                        estado = (
-                            "Colima" if clave in claves_colima
-                            else "Jalisco" if clave in claves_jalisco
-                            else "Michoacán" if clave in claves_michoacan
-                            else "Desconocido"
-                        )
-
-                        # Crear registros consolidados
-                        for _, row in promedios.iterrows():
-                            registro = {
-                                'Clave': clave,
-                                'Estado': estado,
-                                'Latitud': latitud,
-                                'Longitud': longitud,
-                                'Elevación (km)': elevacion,
-                                'Año': row['Año'],
-                                'Mes': row['Mes']
-                            }
-                            registro.update(row.drop(['Año', 'Mes']).to_dict())
-                            datos_consolidados.append(registro)
                     else:
-                        st.warning(f"No hay columnas numéricas válidas en la estación {clave}.")
+                        latitud = np.nan
+                        longitud = np.nan
+                        elevacion = np.nan
+
+                    # Identificar el estado de la estación
+                    estado = (
+                        "Colima" if clave in claves_colima
+                        else "Jalisco" if clave in claves_jalisco
+                        else "Michoacán" if clave in claves_michoacan
+                        else "Desconocido"
+                    )
+
+                    # Crear registro consolidado
+                    for _, row in promedios.iterrows():
+                        registro = {
+                            'Clave': clave,  # Mantener la clave original
+                            'Estado': estado,
+                            'Latitud': latitud,
+                            'Longitud': longitud,
+                            'Elevación (km)': elevacion,
+                            'Año': row['Año'],
+                            'Mes': row['Mes']
+                        }
+                        registro.update(row.drop(['Año', 'Mes']).to_dict())
+                        datos_consolidados.append(registro)
                 except Exception as e:
                     st.warning(f"Error al procesar la estación {clave}: {e}")
 
     return pd.DataFrame(datos_consolidados)
-
 
 
 # Consolidar datos
