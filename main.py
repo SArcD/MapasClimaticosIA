@@ -1871,3 +1871,88 @@ if not df_filtrado.empty:
 
     # Mostrar el gráfico
     st.plotly_chart(fig)
+
+##########################################
+
+st.subheader("Consolidación de datos de todas las estaciones")
+
+st.markdown("""
+<div style="text-align: justify;">
+<p>Esta sección crea un DataFrame consolidado con los datos de todas las estaciones meteorológicas disponibles en las carpetas de entrada. El DataFrame incluye información geoespacial, climática y de elevación de cada estación para facilitar su análisis y visualización.</p>
+</div>
+""", unsafe_allow_html=True)
+
+def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
+    """
+    Consolida los datos de todas las estaciones en un solo DataFrame.
+    """
+    datos_consolidados = []
+
+    for output_dir in output_dirs:
+        for clave in claves:
+            archivo = os.path.join(output_dir, f"{clave}_df.csv")
+            if os.path.exists(archivo):
+                try:
+                    # Leer datos de la estación
+                    df = pd.read_csv(archivo)
+                    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+                    df['Año'] = df['Fecha'].dt.year
+                    df['Mes'] = df['Fecha'].dt.month
+
+                    # Calcular promedios anuales
+                    promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
+
+                    # Agregar información geoespacial
+                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                        latitud = df['Latitud'].iloc[0]
+                        longitud = df['Longitud'].iloc[0]
+                        elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
+                    else:
+                        latitud = np.nan
+                        longitud = np.nan
+                        elevacion = np.nan
+
+                    # Identificar el estado de la estación
+                    estado = (
+                        "Colima" if clave in claves_colima
+                        else "Jalisco" if clave in claves_jalisco
+                        else "Michoacán" if clave in claves_michoacan
+                        else "Desconocido"
+                    )
+
+                    # Crear registro consolidado
+                    for _, row in promedios.iterrows():
+                        registro = {
+                            'Clave': clave,
+                            'Estado': estado,
+                            'Latitud': latitud,
+                            'Longitud': longitud,
+                            'Elevación (km)': elevacion,
+                            'Año': row['Año'],
+                            'Mes': row['Mes']
+                        }
+                        registro.update(row.drop(['Año', 'Mes']).to_dict())
+                        datos_consolidados.append(registro)
+                except Exception as e:
+                    st.warning(f"Error al procesar la estación {clave}: {e}")
+
+    return pd.DataFrame(datos_consolidados)
+
+# Consolidar datos
+if st.button("Consolidar datos de estaciones"):
+    df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
+    if not df_consolidado.empty:
+        st.success("Datos consolidados correctamente.")
+        st.dataframe(df_consolidado)
+
+        # Descarga del DataFrame consolidado
+        csv_consolidado = df_consolidado.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Descargar datos consolidados",
+            data=csv_consolidado,
+            file_name="datos_estaciones_consolidados.csv",
+            mime="text/csv"
+        )
+    else:
+        st.warning("No se encontraron datos para consolidar.")
+
