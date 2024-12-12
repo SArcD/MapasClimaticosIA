@@ -30,3 +30,4 @@ streamlit-folium
 geopy
 geopandas
 rasterio
+prophet
