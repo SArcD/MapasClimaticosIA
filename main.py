@@ -2081,5 +2081,25 @@ def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
                 fila[columna] = np.average(valores_cercanos, weights=1 / distancias[:len(valores_cercanos)])
     return fila
 
+# Columnas que deseas imputar
+#columnas_imputar = ['Temperatura Media (ºC)', 'Precipitación (mm)']
+columnas_imputar = [
+    ' Precipitación(mm)', ' Temperatura Media(ºC)', 
+    ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', ' Evaporación(mm)'
+]
+
+
+# Aplicar imputación geoespacial
+df_consolidado_imputado = df_consolidado_interpolado.apply(
+    lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
+    axis=1
+)
+
+# Confirmar valores faltantes después de la imputación geoespacial
+st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
+faltantes_despues_imputacion = df_consolidado_imputado[columnas_imputar].isnull().sum()
+st.write(f"Valores faltantes por columna después de imputación: \n{faltantes_despues_imputacion}")
+
+
 
 
