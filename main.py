@@ -2025,8 +2025,8 @@ try:
     tree = cKDTree(coordenadas)
 
     # Columnas a imputar
-    columnas_imputar = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)',
-                        'Temperatura Mínima(ºC)', 'Precipitación(mm)']
+    columnas_imputar = [' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)',
+                        ' Temperatura Mínima(ºC)', ' Precipitación(mm)']
 
     # Imputación geoespacial
     df_consolidado_imputado = df_consolidado_interpolado.apply(
