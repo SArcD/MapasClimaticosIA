@@ -1874,14 +1874,6 @@ if not df_filtrado.empty:
 
 ##########################################
 
-st.subheader("Consolidación de datos de todas las estaciones")
-
-st.markdown("""
-<div style="text-align: justify;">
-<p>Esta sección crea un DataFrame consolidado con los datos de todas las estaciones meteorológicas disponibles en las carpetas de entrada. El DataFrame incluye información geoespacial, climática y de elevación de cada estación para facilitar su análisis y visualización.</p>
-</div>
-""", unsafe_allow_html=True)
-
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame.
@@ -1898,10 +1890,14 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
                     df['Año'] = df['Fecha'].dt.year
                     df['Mes'] = df['Fecha'].dt.month
+                    
+                    # Asegurar que la columna 'Clave' conserve su formato original
+                    df['Clave'] = clave  # Asegurar que la clave original no se pierda
+                    df['Clave'] = df['Clave'].astype(str)  # Forzar que sea texto
 
                     # Limpiar columnas numéricas
                     for col in df.columns:
-                        if col not in ['Fecha', 'Latitud', 'Longitud']:  # Excluir columnas no numéricas
+                        if col not in ['Fecha', 'Latitud', 'Longitud', 'Clave']:  # Excluir columnas no numéricas
                             df[col] = pd.to_numeric(
                                 df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
                                 errors='coerce'
@@ -1931,7 +1927,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     # Crear registro consolidado
                     for _, row in promedios.iterrows():
                         registro = {
-                            'Clave': clave,
+                            'Clave': clave,  # Conservar la clave alfanumérica original
                             'Estado': estado,
                             'Latitud': latitud,
                             'Longitud': longitud,
@@ -1945,7 +1941,6 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     st.warning(f"Error al procesar la estación {clave}: {e}")
 
     return pd.DataFrame(datos_consolidados)
-
 
 # Consolidar datos
 if st.button("Consolidar datos de estaciones"):
@@ -1964,4 +1959,3 @@ if st.button("Consolidar datos de estaciones"):
         )
     else:
         st.warning("No se encontraron datos para consolidar.")
-
