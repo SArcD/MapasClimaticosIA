@@ -2043,7 +2043,7 @@ try:
     df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
     st.success("Archivo consolidado con datos imputados guardado correctamente.")
 
-    from fbprophet import Prophet
+    from prophet import Prophet
 
     # Seleccionar los datos para una estación y variable
     df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
