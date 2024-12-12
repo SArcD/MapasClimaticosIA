@@ -1899,7 +1899,15 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     df['Año'] = df['Fecha'].dt.year
                     df['Mes'] = df['Fecha'].dt.month
 
-                    # Calcular promedios anuales
+                    # Limpiar columnas numéricas
+                    for col in df.columns:
+                        if col not in ['Fecha', 'Latitud', 'Longitud']:  # Excluir columnas no numéricas
+                            df[col] = pd.to_numeric(
+                                df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
+                                errors='coerce'
+                            )
+
+                    # Calcular promedios anuales y mensuales
                     promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
 
                     # Agregar información geoespacial
@@ -1937,6 +1945,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     st.warning(f"Error al procesar la estación {clave}: {e}")
 
     return pd.DataFrame(datos_consolidados)
+
 
 # Consolidar datos
 if st.button("Consolidar datos de estaciones"):
