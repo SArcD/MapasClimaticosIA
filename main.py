@@ -2064,22 +2064,41 @@ import numpy as np
 coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
 tree = cKDTree(coordenadas)
 
-# Función para encontrar la media ponderada de las estaciones cercanas
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
-    if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
-        return fila[columnas_imputar]  # Si no hay coordenadas, no se imputa
+    """
+    Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
 
-    # Buscar estaciones más cercanas
-    distancias, indices = tree.query([fila['Latitud'], fila['Longitud']], k=k)
-    estaciones_cercanas = df.iloc[indices]
+    Args:
+        fila (pd.Series): Fila actual del DataFrame.
+        columnas_imputar (list): Columnas a imputar.
+        df (pd.DataFrame): DataFrame completo.
+        tree (cKDTree): Árbol KD para buscar vecinos.
+        k (int): Número de vecinos a considerar.
+
+    Returns:
+        pd.Series: Fila con valores imputados.
+    """
+    # Si no hay coordenadas, no se puede imputar
+    if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
+        return fila
+
+    # Coordenadas de la fila actual
+    coord = [fila['Latitud'], fila['Longitud']]
+    distancias, indices = tree.query([coord], k=k)
+    
+    # DataFrame de estaciones cercanas
+    estaciones_cercanas = df.iloc[indices[0]]
 
     for columna in columnas_imputar:
         if pd.isnull(fila[columna]):
-            # Media ponderada inversa a la distancia
+            # Valores válidos de las estaciones cercanas
             valores_cercanos = estaciones_cercanas[columna].dropna()
-            if len(valores_cercanos) > 0:
-                fila[columna] = np.average(valores_cercanos, weights=1 / distancias[:len(valores_cercanos)])
+            if not valores_cercanos.empty:
+                # Calcular media ponderada inversa a la distancia
+                pesos = 1 / (distancias[0][:len(valores_cercanos)] + 1e-5)  # Evitar división por cero
+                fila[columna] = np.average(valores_cercanos, weights=pesos)
     return fila
+
 
 # Columnas que deseas imputar
 #columnas_imputar = ['Temperatura Media (ºC)', 'Precipitación (mm)']
@@ -2090,10 +2109,10 @@ columnas_imputar = [
 
 
 # Aplicar imputación geoespacial
-df_consolidado_imputado = df_consolidado_interpolado.apply(
-    lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
-    axis=1
-)
+for idx, row in df_consolidado_interpolado.iterrows():
+    df_consolidado_imputado.loc[idx] = imputar_geoespacial(
+        row, columnas_imputar, df_consolidado_interpolado, tree
+    )
 
 # Confirmar valores faltantes después de la imputación geoespacial
 st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
