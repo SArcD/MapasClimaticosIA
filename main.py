@@ -1891,11 +1891,9 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     # Convertir la columna 'Fecha' a formato datetime
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
 
-                    # Agregar columnas de Año y Mes si no existen
-                    if 'Año' not in df.columns:
-                        df['Año'] = df['Fecha'].dt.year
-                    if 'Mes' not in df.columns:
-                        df['Mes'] = df['Fecha'].dt.month
+                    # Asegurar que las columnas 'Año' y 'Mes' existen y están correctas
+                    df['Año'] = df['Fecha'].dt.year if 'Año' not in df.columns else df['Año']
+                    df['Mes'] = df['Fecha'].dt.month if 'Mes' not in df.columns else df['Mes']
 
                     # Asegurar que la clave se mantenga como texto
                     df['Clave'] = clave
@@ -1943,6 +1941,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                     st.warning(f"Error al procesar la estación {clave}: {e}")
 
     return pd.DataFrame(datos_consolidados)
+
 
 
 # Consolidar datos
