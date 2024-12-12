@@ -2039,3 +2039,12 @@ try:
 except Exception as e:
     st.error(f"Error en el flujo de procesamiento: {e}")
 
+# Identificar valores faltantes
+faltantes = df_consolidado.isnull().sum()
+porcentaje_faltantes = (faltantes / len(df_consolidado)) * 100
+
+# Mostrar resumen de datos faltantes
+st.subheader("Resumen de Datos Faltantes")
+st.write(pd.DataFrame({'Columnas': faltantes.index, 'Faltantes': faltantes.values, '% Faltantes': porcentaje_faltantes}).sort_values('% Faltantes', ascending=False))
+
+
