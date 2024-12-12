@@ -2047,4 +2047,14 @@ porcentaje_faltantes = (faltantes / len(df_consolidado)) * 100
 st.subheader("Resumen de Datos Faltantes")
 st.write(pd.DataFrame({'Columnas': faltantes.index, 'Faltantes': faltantes.values, '% Faltantes': porcentaje_faltantes}).sort_values('% Faltantes', ascending=False))
 
+# Ordenar por Clave, Año y Mes
+df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
+
+# Interpolación temporal por estación
+df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(lambda group: group.interpolate(method='linear', limit_direction='forward', axis=0))
+
+# Confirmar valores faltantes después de la interpolación
+st.subheader("Valores Faltantes Después de la Interpolación Temporal")
+st.write(df_consolidado_interpolado.isnull().sum())
+
 
