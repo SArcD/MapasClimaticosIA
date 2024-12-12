@@ -1896,8 +1896,8 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
                     # Verificar si las columnas de coordenadas están presentes
                     if 'Latitud' in df.columns and 'Longitud' in df.columns:
-                        latitud = df['Latitud'].iloc[0]
-                        longitud = df['Longitud'].iloc[0]
+                        latitud = round(df['Latitud'].iloc[0], 6)
+                        longitud = round(df['Longitud'].iloc[0], 6)
                         coordenadas_nombres[(latitud, longitud)] = clave
                 except Exception as e:
                     st.warning(f"Error al procesar la estación {clave} para recolección de coordenadas: {e}")
@@ -1944,27 +1944,18 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
                     # Agregar información geoespacial
                     if 'Latitud' in df.columns and 'Longitud' in df.columns:
-                        latitud = df['Latitud'].iloc[0]
-                        longitud = df['Longitud'].iloc[0]
+                        latitud = round(df['Latitud'].iloc[0], 6)
+                        longitud = round(df['Longitud'].iloc[0], 6)
                         elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
                     else:
                         latitud = np.nan
                         longitud = np.nan
                         elevacion = np.nan
 
-                    # Identificar el estado de la estación
-                    estado = (
-                        "Colima" if clave in claves_colima
-                        else "Jalisco" if clave in claves_jalisco
-                        else "Michoacán" if clave in claves_michoacan
-                        else "Desconocido"
-                    )
-
                     # Crear registro consolidado
                     for _, row in promedios.iterrows():
                         registro = {
-                            'Clave': clave,  # Mantener la clave original
-                            'Estado': estado,
+                            'Clave': clave,
                             'Latitud': latitud,
                             'Longitud': longitud,
                             'Elevación (km)': elevacion,
@@ -1992,10 +1983,39 @@ def renombrar_estaciones_automaticamente(df_consolidado, coordenadas_nombres):
         pd.DataFrame: DataFrame con la columna 'Clave' renombrada.
     """
     df_consolidado['Clave'] = df_consolidado.apply(
-        lambda row: coordenadas_nombres.get((row['Latitud'], row['Longitud']), row['Clave']),
+        lambda row: coordenadas_nombres.get((round(row['Latitud'], 6), round(row['Longitud'], 6)), row['Clave']),
         axis=1
     )
     return df_consolidado
+
+
+def estandarizar_nombres_estaciones(df, columna_clave):
+    """
+    Estandariza los nombres de las estaciones en el DataFrame.
+
+    Args:
+        df (pd.DataFrame): DataFrame que contiene los datos de las estaciones.
+        columna_clave (str): Nombre de la columna que contiene las claves de las estaciones.
+
+    Returns:
+        pd.DataFrame: DataFrame con los nombres de estaciones estandarizados.
+    """
+    # Crear un mapeo de coordenadas a un nombre estándar
+    nombre_estandar = {}
+    for _, row in df.iterrows():
+        clave_actual = row[columna_clave]
+        latitud = round(row['Latitud'], 6)
+        longitud = round(row['Longitud'], 6)
+        coordenada = (latitud, longitud)
+
+        if coordenada not in nombre_estandar:
+            nombre_estandar[coordenada] = str(clave_actual)
+
+    df[columna_clave] = df.apply(
+        lambda row: nombre_estandar.get((round(row['Latitud'], 6), round(row['Longitud'], 6)), row[columna_clave]),
+        axis=1
+    )
+    return df
 
 
 # Ejecución del flujo
@@ -2009,9 +2029,13 @@ try:
     # Renombrar las estaciones con base en las coordenadas recolectadas
     df_consolidado = renombrar_estaciones_automaticamente(df_consolidado, coordenadas_estaciones)
 
+    # Estandarizar los nombres de las estaciones
+    df_consolidado = estandarizar_nombres_estaciones(df_consolidado, columna_clave='Clave')
+
     # Mostrar el DataFrame final
     st.subheader("DataFrame Consolidado con Estaciones Renombradas")
     st.dataframe(df_consolidado)
+
 except Exception as e:
     st.error(f"Error en el flujo de procesamiento: {e}")
 
