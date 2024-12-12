@@ -1887,9 +1887,15 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                 try:
                     # Leer datos de la estación
                     df = pd.read_csv(archivo)
+
+                    # Convertir la columna 'Fecha' a formato datetime
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
-                    df['Año'] = df['Fecha'].dt.year
-                    df['Mes'] = df['Fecha'].dt.month
+
+                    # Agregar columnas de Año y Mes si no existen
+                    if 'Año' not in df.columns:
+                        df['Año'] = df['Fecha'].dt.year
+                    if 'Mes' not in df.columns:
+                        df['Mes'] = df['Fecha'].dt.month
 
                     # Asegurar que la clave se mantenga como texto
                     df['Clave'] = clave
@@ -1900,7 +1906,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
                     # Excluir columnas que no sean relevantes para los cálculos
                     columnas_numericas = [col for col in columnas_numericas if col not in ['Latitud', 'Longitud']]
-                    
+
                     # Calcular promedios anuales y mensuales
                     if columnas_numericas:
                         promedios = df.groupby(['Año', 'Mes'])[columnas_numericas].mean().reset_index()
