@@ -2100,6 +2100,16 @@ st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
 faltantes_despues_imputacion = df_consolidado_imputado[columnas_imputar].isnull().sum()
 st.write(f"Valores faltantes por columna después de imputación: \n{faltantes_despues_imputacion}")
 
+# Verificar que no queden valores faltantes en columnas críticas
+faltantes_finales = df_consolidado_imputado.isnull().sum()
+st.subheader("Validación Final de Datos Faltantes")
+st.write(faltantes_finales)
+
+# Guardar el DataFrame procesado
+df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
+st.success("Archivo consolidado con datos imputados guardado correctamente.")
+
+
 
 
 
