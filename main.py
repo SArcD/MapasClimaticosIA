@@ -2057,4 +2057,29 @@ df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(lambda group:
 st.subheader("Valores Faltantes Después de la Interpolación Temporal")
 st.write(df_consolidado_interpolado.isnull().sum())
 
+from scipy.spatial import cKDTree
+import numpy as np
+
+# Crear un array de coordenadas
+coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
+tree = cKDTree(coordenadas)
+
+# Función para encontrar la media ponderada de las estaciones cercanas
+def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
+    if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
+        return fila[columnas_imputar]  # Si no hay coordenadas, no se imputa
+
+    # Buscar estaciones más cercanas
+    distancias, indices = tree.query([fila['Latitud'], fila['Longitud']], k=k)
+    estaciones_cercanas = df.iloc[indices]
+
+    for columna in columnas_imputar:
+        if pd.isnull(fila[columna]):
+            # Media ponderada inversa a la distancia
+            valores_cercanos = estaciones_cercanas[columna].dropna()
+            if len(valores_cercanos) > 0:
+                fila[columna] = np.average(valores_cercanos, weights=1 / distancias[:len(valores_cercanos)])
+    return fila
+
+
 
