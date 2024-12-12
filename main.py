@@ -1874,6 +1874,12 @@ if not df_filtrado.empty:
 
 ##########################################
 
+import os
+import pandas as pd
+import numpy as np
+from scipy.spatial import cKDTree
+import streamlit as st
+
 def recolectar_coordenadas_nombres(claves, output_dirs):
     """
     Recolecta los nombres y coordenadas geográficas de las estaciones.
@@ -1904,7 +1910,6 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
     return coordenadas_nombres
 
-
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame.
@@ -1933,7 +1938,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
                     # Limpiar columnas numéricas
                     for col in df.columns:
-                        if col not in ['Fecha', 'Latitud', 'Longitud']:  # Excluir columnas no numéricas
+                        if col not in ['Fecha', 'Latitud', 'Longitud']:
                             df[col] = pd.to_numeric(
                                 df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
                                 errors='coerce'
@@ -1969,101 +1974,6 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
     return pd.DataFrame(datos_consolidados)
 
-
-def renombrar_estaciones_automaticamente(df_consolidado, coordenadas_nombres):
-    """
-    Renombra las estaciones en el DataFrame consolidado con base en las coordenadas recolectadas.
-
-    Args:
-        df_consolidado (pd.DataFrame): DataFrame consolidado con datos de estaciones.
-        coordenadas_nombres (dict): Diccionario donde las claves son coordenadas (latitud, longitud) y
-                                    los valores son los nombres de las estaciones.
-
-    Returns:
-        pd.DataFrame: DataFrame con la columna 'Clave' renombrada.
-    """
-    df_consolidado['Clave'] = df_consolidado.apply(
-        lambda row: coordenadas_nombres.get((round(row['Latitud'], 6), round(row['Longitud'], 6)), row['Clave']),
-        axis=1
-    )
-    return df_consolidado
-
-
-def estandarizar_nombres_estaciones(df, columna_clave):
-    """
-    Estandariza los nombres de las estaciones en el DataFrame.
-
-    Args:
-        df (pd.DataFrame): DataFrame que contiene los datos de las estaciones.
-        columna_clave (str): Nombre de la columna que contiene las claves de las estaciones.
-
-    Returns:
-        pd.DataFrame: DataFrame con los nombres de estaciones estandarizados.
-    """
-    # Crear un mapeo de coordenadas a un nombre estándar
-    nombre_estandar = {}
-    for _, row in df.iterrows():
-        clave_actual = row[columna_clave]
-        latitud = round(row['Latitud'], 6)
-        longitud = round(row['Longitud'], 6)
-        coordenada = (latitud, longitud)
-
-        if coordenada not in nombre_estandar:
-            nombre_estandar[coordenada] = str(clave_actual)
-
-    df[columna_clave] = df.apply(
-        lambda row: nombre_estandar.get((round(row['Latitud'], 6), round(row['Longitud'], 6)), row[columna_clave]),
-        axis=1
-    )
-    return df
-
-
-# Ejecución del flujo
-try:
-    # Recolectar las coordenadas y nombres de estaciones
-    coordenadas_estaciones = recolectar_coordenadas_nombres(claves, output_dirs)
-
-    # Consolidar datos de las estaciones
-    df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
-
-    # Renombrar las estaciones con base en las coordenadas recolectadas
-    df_consolidado = renombrar_estaciones_automaticamente(df_consolidado, coordenadas_estaciones)
-
-    # Estandarizar los nombres de las estaciones
-    df_consolidado = estandarizar_nombres_estaciones(df_consolidado, columna_clave='Clave')
-
-    # Mostrar el DataFrame final
-    st.subheader("DataFrame Consolidado con Estaciones Renombradas")
-    st.dataframe(df_consolidado)
-
-except Exception as e:
-    st.error(f"Error en el flujo de procesamiento: {e}")
-
-# Identificar valores faltantes
-faltantes = df_consolidado.isnull().sum()
-porcentaje_faltantes = (faltantes / len(df_consolidado)) * 100
-
-# Mostrar resumen de datos faltantes
-st.subheader("Resumen de Datos Faltantes")
-st.write(pd.DataFrame({'Columnas': faltantes.index, 'Faltantes': faltantes.values, '% Faltantes': porcentaje_faltantes}).sort_values('% Faltantes', ascending=False))
-
-# Ordenar por Clave, Año y Mes
-df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
-
-# Interpolación temporal por estación
-df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(lambda group: group.interpolate(method='linear', limit_direction='forward', axis=0))
-
-# Confirmar valores faltantes después de la interpolación
-st.subheader("Valores Faltantes Después de la Interpolación Temporal")
-st.write(df_consolidado_interpolado.isnull().sum())
-
-from scipy.spatial import cKDTree
-import numpy as np
-
-# Crear un array de coordenadas
-coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
-tree = cKDTree(coordenadas)
-
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
     """
     Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
@@ -2082,51 +1992,59 @@ def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
     if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
         return fila
 
-    # Coordenadas de la fila actual
     coord = [fila['Latitud'], fila['Longitud']]
     distancias, indices = tree.query([coord], k=k)
-    
-    # DataFrame de estaciones cercanas
     estaciones_cercanas = df.iloc[indices[0]]
 
     for columna in columnas_imputar:
         if pd.isnull(fila[columna]):
-            # Valores válidos de las estaciones cercanas
             valores_cercanos = estaciones_cercanas[columna].dropna()
             if not valores_cercanos.empty:
-                # Calcular media ponderada inversa a la distancia
-                pesos = 1 / (distancias[0][:len(valores_cercanos)] + 1e-5)  # Evitar división por cero
+                pesos = 1 / (distancias[0][:len(valores_cercanos)] + 1e-5)
                 fila[columna] = np.average(valores_cercanos, weights=pesos)
     return fila
 
+# Ejecución del flujo
+try:
+    # Recolectar coordenadas
+    coordenadas_estaciones = recolectar_coordenadas_nombres(claves, output_dirs)
 
-# Columnas que deseas imputar
-#columnas_imputar = ['Temperatura Media (ºC)', 'Precipitación (mm)']
-columnas_imputar = [
-    ' Precipitación(mm)', ' Temperatura Media(ºC)', 
-    ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', ' Evaporación(mm)'
-]
+    # Consolidar datos
+    df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
 
+    # Ordenar por Clave, Año y Mes
+    df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
 
-# Aplicar imputación geoespacial
-for idx, row in df_consolidado_interpolado.iterrows():
-    df_consolidado_imputado.loc[idx] = imputar_geoespacial(
-        row, columnas_imputar, df_consolidado_interpolado, tree
+    # Interpolación temporal
+    df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(
+        lambda group: group.interpolate(method='linear', limit_direction='forward', axis=0)
     )
 
-# Confirmar valores faltantes después de la imputación geoespacial
-st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
-faltantes_despues_imputacion = df_consolidado_imputado[columnas_imputar].isnull().sum()
-st.write(f"Valores faltantes por columna después de imputación: \n{faltantes_despues_imputacion}")
+    # Crear árbol para imputación geoespacial
+    coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
+    tree = cKDTree(coordenadas)
 
-# Verificar que no queden valores faltantes en columnas críticas
-faltantes_finales = df_consolidado_imputado.isnull().sum()
-st.subheader("Validación Final de Datos Faltantes")
-st.write(faltantes_finales)
+    # Columnas a imputar
+    columnas_imputar = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)',
+                        'Temperatura Mínima(ºC)', 'Precipitación(mm)']
 
-# Guardar el DataFrame procesado
-df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
-st.success("Archivo consolidado con datos imputados guardado correctamente.")
+    # Imputación geoespacial
+    df_consolidado_imputado = df_consolidado_interpolado.apply(
+        lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
+        axis=1
+    )
+
+    # Mostrar resultados
+    st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
+    faltantes_finales = df_consolidado_imputado.isnull().sum()
+    st.write(faltantes_finales)
+
+    # Guardar el DataFrame procesado
+    df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
+    st.success("Archivo consolidado con datos imputados guardado correctamente.")
+
+except Exception as e:
+    st.error(f"Error en el flujo de procesamiento: {e}")
 
 
 
