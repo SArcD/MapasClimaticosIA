@@ -1874,9 +1874,49 @@ if not df_filtrado.empty:
 
 ##########################################
 
+def recolectar_coordenadas_nombres(claves, output_dirs):
+    """
+    Recolecta los nombres y coordenadas geográficas de las estaciones.
+
+    Args:
+        claves (list): Lista de claves de las estaciones.
+        output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
+
+    Returns:
+        dict: Diccionario con coordenadas (latitud, longitud) como claves y nombres de estaciones como valores.
+    """
+    coordenadas_nombres = {}
+
+    for output_dir in output_dirs:
+        for clave in claves:
+            archivo = os.path.join(output_dir, f"{clave}_df.csv")
+            if os.path.exists(archivo):
+                try:
+                    df = pd.read_csv(archivo)
+
+                    # Verificar si las columnas de coordenadas están presentes
+                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                        latitud = df['Latitud'].iloc[0]
+                        longitud = df['Longitud'].iloc[0]
+                        coordenadas_nombres[(latitud, longitud)] = clave
+                except Exception as e:
+                    st.warning(f"Error al procesar la estación {clave} para recolección de coordenadas: {e}")
+
+    return coordenadas_nombres
+
+
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame.
+
+    Args:
+        claves (list): Lista de claves de estaciones.
+        output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
+        elevation_data (array): Datos de elevación para corrección.
+        tile_size (tuple): Tamaño de la grilla de elevación.
+
+    Returns:
+        pd.DataFrame: DataFrame consolidado.
     """
     datos_consolidados = []
 
@@ -1939,20 +1979,39 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     return pd.DataFrame(datos_consolidados)
 
 
-# Consolidar datos
-if st.button("Consolidar datos de estaciones"):
-    df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
-    if not df_consolidado.empty:
-        st.success("Datos consolidados correctamente.")
-        st.dataframe(df_consolidado)
+def renombrar_estaciones_automaticamente(df_consolidado, coordenadas_nombres):
+    """
+    Renombra las estaciones en el DataFrame consolidado con base en las coordenadas recolectadas.
 
-        # Descarga del DataFrame consolidado
-        csv_consolidado = df_consolidado.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Descargar datos consolidados",
-            data=csv_consolidado,
-            file_name="datos_estaciones_consolidados.csv",
-            mime="text/csv"
-        )
-    else:
-        st.warning("No se encontraron datos para consolidar.")
+    Args:
+        df_consolidado (pd.DataFrame): DataFrame consolidado con datos de estaciones.
+        coordenadas_nombres (dict): Diccionario donde las claves son coordenadas (latitud, longitud) y
+                                    los valores son los nombres de las estaciones.
+
+    Returns:
+        pd.DataFrame: DataFrame con la columna 'Clave' renombrada.
+    """
+    df_consolidado['Clave'] = df_consolidado.apply(
+        lambda row: coordenadas_nombres.get((row['Latitud'], row['Longitud']), row['Clave']),
+        axis=1
+    )
+    return df_consolidado
+
+
+# Ejecución del flujo
+try:
+    # Recolectar las coordenadas y nombres de estaciones
+    coordenadas_estaciones = recolectar_coordenadas_nombres(claves, output_dirs)
+
+    # Consolidar datos de las estaciones
+    df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
+
+    # Renombrar las estaciones con base en las coordenadas recolectadas
+    df_consolidado = renombrar_estaciones_automaticamente(df_consolidado, coordenadas_estaciones)
+
+    # Mostrar el DataFrame final
+    st.subheader("DataFrame Consolidado con Estaciones Renombradas")
+    st.dataframe(df_consolidado)
+except Exception as e:
+    st.error(f"Error en el flujo de procesamiento: {e}")
+
