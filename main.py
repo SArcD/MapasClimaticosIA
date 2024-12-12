@@ -2047,7 +2047,7 @@ try:
 
     # Seleccionar los datos para una estación y variable
     df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
-    df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'})
+    df_estacion = df_estacion[['Fecha', ' Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', ' Temperatura Media(ºC)': 'y'})
 
     # Crear y entrenar el modelo
     modelo = Prophet()
