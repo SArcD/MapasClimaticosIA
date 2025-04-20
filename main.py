@@ -906,29 +906,47 @@ if not df_resultado.empty:
                 margin=dict(l=0, r=0, t=50, b=0)
             )
 
-            fig.update_layout(
-                xaxis=dict(
-                    title="Longitud",
-                    titlefont=dict(size=14, family="Arial"),
-                    tickfont=dict(size=12, family="Arial"),
-                    range=[-104.7, -103.3]  # Ajustar los límites iniciales del eje X (Longitud)
-                ),
-                    yaxis=dict(
-                    title="Latitud",
-                    titlefont=dict(size=14, family="Arial"),
-                    tickfont=dict(size=12, family="Arial"),
-                    range=[18.5, 19.7]  # Ajustar los límites iniciales del eje Y (Latitud)
-                ),
+            #fig.update_layout(
+            #    xaxis=dict(
+            #        title="Longitud",
+            #        titlefont=dict(size=14, family="Arial"),
+            #        tickfont=dict(size=12, family="Arial"),
+            #        range=[-104.7, -103.3]  # Ajustar los límites iniciales del eje X (Longitud)
+            #    ),
+            #        yaxis=dict(
+            #        title="Latitud",
+            #        titlefont=dict(size=14, family="Arial"),
+            #        tickfont=dict(size=12, family="Arial"),
+            #        range=[18.5, 19.7]  # Ajustar los límites iniciales del eje Y (Latitud)
+            #    ),
 #                geo=dict(
 #                    center=dict(
 #                        lon=-104.0,  # Longitud central
 #                        lat=19.3     # Latitud central
 #                    ),
 #                    projection_scale=1  # Ajustar el zoom inicial
+            #    ),
+            #    margin=dict(l=20, r=20, t=50, b=20) 
+            #)
+
+            fig.update_layout(
+                xaxis=dict(
+                    title="Longitud",
+                    titlefont=dict(size=14, family="Arial"),
+                    tickfont=dict(size=12, family="Arial"),
+                    range=[-104.7, -103.3]
                 ),
-                margin=dict(l=20, r=20, t=50, b=20) 
+                yaxis=dict(
+                    title="Latitud",
+                    titlefont=dict(size=14, family="Arial"),
+                    tickfont=dict(size=12, family="Arial"),
+                    range=[18.5, 19.7]
+                ),
+                margin=dict(l=20, r=20, t=50, b=20)
             )
 
+
+            
             fig.update_layout(
                 width=1000,  # Ancho del gráfico
                 height=600,  # Altura del gráfico
