@@ -31,5 +31,5 @@ geopy
 geopandas
 rasterio
 prophet
-scipy==1.9.3
-plotly==5.15.0
+scipy
+plotly
