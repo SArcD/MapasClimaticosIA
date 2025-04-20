@@ -919,12 +919,12 @@ if not df_resultado.empty:
                     tickfont=dict(size=12, family="Arial"),
                     range=[18.5, 19.7]  # Ajustar los límites iniciales del eje Y (Latitud)
                 ),
-                geo=dict(
-                    center=dict(
-                        lon=-104.0,  # Longitud central
-                        lat=19.3     # Latitud central
-                    ),
-                    projection_scale=1  # Ajustar el zoom inicial
+#                geo=dict(
+#                    center=dict(
+#                        lon=-104.0,  # Longitud central
+#                        lat=19.3     # Latitud central
+#                    ),
+#                    projection_scale=1  # Ajustar el zoom inicial
                 ),
                 margin=dict(l=20, r=20, t=50, b=20) 
             )
