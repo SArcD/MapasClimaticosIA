@@ -1589,27 +1589,43 @@ if not df_resultado.empty:
                             )
 
         # Configuración del diseño
+        #fig.update_layout(
+        #    title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+        #    xaxis=dict(
+        #        title="Longitud",
+                #titlefont=dict(size=14, family="Arial"),
+        #        tickfont=dict(size=12, family="Arial"),
+        #        range=[-104.7, -103.3]
+            ),
+        #    yaxis=dict(
+        #        title="Latitud",
+                #titlefont=dict(size=14, family="Arial"),
+        #        tickfont=dict(size=12, family="Arial"),
+        #        range=[18.5, 19.7],
+        #        scaleanchor="x"
+        #    ),
+        #    width=1000,
+        #    height=600,
+        #    margin=dict(l=20, r=20, t=50, b=20)
+        #)
+
         fig.update_layout(
             title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
             xaxis=dict(
                 title="Longitud",
-                #titlefont=dict(size=14, family="Arial"),
                 tickfont=dict(size=12, family="Arial"),
-                range=[-104.7, -103.3]
+                range=[longitudes.min() - margen_long, longitudes.max() + margen_long]
             ),
             yaxis=dict(
                 title="Latitud",
-                #titlefont=dict(size=14, family="Arial"),
                 tickfont=dict(size=12, family="Arial"),
-                range=[18.5, 19.7],
-                scaleanchor="x"
+                range=[latitudes.min() - margen_lat, latitudes.max() + margen_lat]
             ),
             width=1000,
-            height=600,
+            height=700,
             margin=dict(l=20, r=20, t=50, b=20)
         )
 
-        
 
         
 #        # Configuración del diseño
