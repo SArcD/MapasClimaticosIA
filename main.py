@@ -801,7 +801,7 @@ if not df_resultado.empty:
 
     # Filtrar estaciones con valores NaN en la columna seleccionada
     if columna_grafico in df_resultado.columns:
-        #df_filtrado = df_resultado.dropna(subset=[columna_grafico])
+        df_filtrado = df_resultado.dropna(subset=[columna_grafico])
 
         if not df_filtrado.empty:
             # Preparar datos para interpolación
