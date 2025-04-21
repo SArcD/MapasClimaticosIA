@@ -1601,7 +1601,8 @@ if not df_resultado.empty:
                 title="Latitud",
                 #titlefont=dict(size=14, family="Arial"),
                 tickfont=dict(size=12, family="Arial"),
-                range=[18.5, 19.7]
+                range=[18.5, 19.7],
+                scaleanchor="x"
             ),
             width=1000,
             height=600,
