@@ -1046,21 +1046,46 @@ if not df_resultado.empty:
                     xanchor='center',
                     font=dict(size=18)
                 ),
-                xaxis=dict(
-                    title="Longitud",
+#                xaxis=dict(
+#                    title="Longitud",
                     #titlefont=dict(size=14, family="Arial", color='black'),
+#                    tickfont=dict(size=12, family="Arial", color='black'),
+#                    range=[-104.7, -103.3],  # Ajusta si tus datos cambian
+#                    showgrid=True
+#                ),
+                xaxis=dict(
+                    title=dict(
+                        text="Longitud",
+                        font=dict(size=14, family="Arial", color='black')
+                    ),
                     tickfont=dict(size=12, family="Arial", color='black'),
-                    range=[-104.7, -103.3],  # Ajusta si tus datos cambian
-                    showgrid=True
+                    range=[-104.7, -103.3],
+                    showgrid=False
                 ),
+
+
+                
+#                yaxis=dict(
+#                    title="Latitud",
+#                    #tickfont=dict(size=14, family="Arial", color='black'),
+#                    tickfont=dict(size=12, family="Arial", color='black'),
+#                    range=[18.5, 19.7],  # Ajusta si tus datos cambian
+#                    scaleanchor="x",  # Mantiene proporción 1:1 entre lat/lon
+#                    showgrid=True
+#                ),
+
                 yaxis=dict(
-                    title="Latitud",
-                    #tickfont=dict(size=14, family="Arial", color='black'),
+                    title=dict(
+                        text="Latitud",
+                        font=dict(size=14, family="Arial", color='black')
+                    ),
                     tickfont=dict(size=12, family="Arial", color='black'),
-                    range=[18.5, 19.7],  # Ajusta si tus datos cambian
-                    scaleanchor="x",  # Mantiene proporción 1:1 entre lat/lon
-                    showgrid=True
+                    range=[18.5, 19.7],
+                    scaleanchor="x",
+                    showgrid=False
                 ),
+
+                
                 plot_bgcolor="white",
                 paper_bgcolor="white",
                 width=1000,
