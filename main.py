@@ -1682,6 +1682,9 @@ for estacion in claves_colima:
     if os.path.exists(archivo_estacion):
         try:
             df_estacion = pd.read_csv(archivo_estacion)
+            #df_estacion = pd.read_csv(archivo_estacion)
+            df_estacion.columns = df_estacion.columns.str.strip()
+
             df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
             
             # Asegurar que el parámetro es numérico
@@ -1734,6 +1737,9 @@ archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
 # Leer el archivo CSV de la estación seleccionada
 try:
     df_estacion = pd.read_csv(archivo_estacion)
+    #df_estacion = pd.read_csv(archivo_estacion)
+    df_estacion.columns = df_estacion.columns.str.strip()
+
     df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
     df_estacion['Año'] = df_estacion['Fecha'].dt.year
     df_estacion['Mes'] = df_estacion['Fecha'].dt.month
@@ -1979,6 +1985,9 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
             if os.path.exists(archivo):
                 try:
                     df = pd.read_csv(archivo)
+                    #df = pd.read_csv(archivo)
+                    df.columns = df.columns.str.strip()
+
 
                     # Verificar si las columnas de coordenadas están presentes
                     if 'Latitud' in df.columns and 'Longitud' in df.columns:
@@ -2012,6 +2021,9 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                 try:
                     # Leer datos de la estación
                     df = pd.read_csv(archivo)
+                    #df = pd.read_csv(archivo)
+                    df.columns = df.columns.str.strip()
+
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
                     df['Año'] = df['Fecha'].dt.year
                     df['Mes'] = df['Fecha'].dt.month
