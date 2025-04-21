@@ -1589,8 +1589,6 @@ if not df_resultado.empty:
         #)
 
         # Configuración del diseño
-        fig.update_layout(
-
                         # Configuración consolidada del layout del gráfico
         fig.update_layout(
             title=dict(
