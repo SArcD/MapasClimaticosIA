@@ -300,7 +300,8 @@ def procesar_datos(ano, mes, claves, output_dirs):
         for clave in claves:
             archivo = os.path.join(output_dir, f"{clave}_df.csv")
             if os.path.exists(archivo):
-                df = pd.read_csv(archivo)
+                df = pd.read_csv(archivo) #aqui se agrego un eliminador de espacios
+                df.columns = df.columns.str.strip()
                 df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
                 df['ano'] = df['Fecha'].dt.year
                 df['mes'] = df['Fecha'].dt.month
