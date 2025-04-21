@@ -744,7 +744,7 @@ else:
 
 st.write("Columnas disponibles:", df_resultado.columns.tolist())
 st.write("Número total de filas:", len(df_resultado))
-st.write("Ejemplo de filas:", df_resultado[[columna_grafico, 'Latitud', 'Longitud']].dropna().head())
+st.write("Ejemplo de filas:", df_resultado[[columna_grafico, 'Latitud', 'Longitud']].dropna())
 
 
 #
