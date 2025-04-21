@@ -1046,13 +1046,6 @@ if not df_resultado.empty:
                     xanchor='center',
                     font=dict(size=18)
                 ),
-#                xaxis=dict(
-#                    title="Longitud",
-                    #titlefont=dict(size=14, family="Arial", color='black'),
-#                    tickfont=dict(size=12, family="Arial", color='black'),
-#                    range=[-104.7, -103.3],  # Ajusta si tus datos cambian
-#                    showgrid=True
-#                ),
                 xaxis=dict(
                     title=dict(
                         text="Longitud",
@@ -1062,18 +1055,6 @@ if not df_resultado.empty:
                     range=[-104.7, -103.3],
                     showgrid=False
                 ),
-
-
-                
-#                yaxis=dict(
-#                    title="Latitud",
-#                    #tickfont=dict(size=14, family="Arial", color='black'),
-#                    tickfont=dict(size=12, family="Arial", color='black'),
-#                    range=[18.5, 19.7],  # Ajusta si tus datos cambian
-#                    scaleanchor="x",  # Mantiene proporción 1:1 entre lat/lon
-#                    showgrid=True
-#                ),
-
                 yaxis=dict(
                     title=dict(
                         text="Latitud",
@@ -1084,8 +1065,6 @@ if not df_resultado.empty:
                     scaleanchor="x",
                     showgrid=False
                 ),
-
-                
                 plot_bgcolor="white",
                 paper_bgcolor="white",
                 width=1000,
@@ -1611,22 +1590,40 @@ if not df_resultado.empty:
 
         # Configuración del diseño
         fig.update_layout(
-            title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+
+                        # Configuración consolidada del layout del gráfico
+        fig.update_layout(
+            title=dict(
+                text=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+                x=0.5,
+                xanchor='center',
+                font=dict(size=18)
+            ),
             xaxis=dict(
-                title="Longitud",
-                #titlefont=dict(size=14, family="Arial"),
-                tickfont=dict(size=12, family="Arial"),
-                range=[-104.7, -103.3]
+                title=dict(
+                    text="Longitud",
+                    font=dict(size=14, family="Arial", color='black')
+                ),
+                tickfont=dict(size=12, family="Arial", color='black'),
+                range=[-104.7, -103.3],
+                showgrid=False
             ),
             yaxis=dict(
-                title="Latitud",
-                #titlefont=dict(size=14, family="Arial"),
-                tickfont=dict(size=12, family="Arial"),
-                range=[18.5, 19.7]
+                title=dict(
+                    text="Latitud",
+                    font=dict(size=14, family="Arial", color='black')
+                ),
+                tickfont=dict(size=12, family="Arial", color='black'),
+                range=[18.5, 19.7],
+                scaleanchor="x",
+                showgrid=False
             ),
+            plot_bgcolor="white",
+            paper_bgcolor="white",
             width=1000,
             height=600,
-            margin=dict(l=20, r=20, t=50, b=20)
+            margin=dict(l=20, r=20, t=50, b=20),
+            showlegend=True
         )
 
         # Mostrar gráfico
