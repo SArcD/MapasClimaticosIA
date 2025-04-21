@@ -962,7 +962,7 @@ if not df_resultado.empty:
 
             # Configuración del diseño
             fig.update_layout(
-                title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()})",
+#                title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()})",
                 xaxis_title="Longitud",
                 yaxis_title="Latitud",
                 margin=dict(l=0, r=0, t=50, b=0)
