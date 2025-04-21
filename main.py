@@ -1596,7 +1596,7 @@ if not df_resultado.empty:
                 #titlefont=dict(size=14, family="Arial"),
         #        tickfont=dict(size=12, family="Arial"),
         #        range=[-104.7, -103.3]
-            ),
+        #    ),
         #    yaxis=dict(
         #        title="Latitud",
                 #titlefont=dict(size=14, family="Arial"),
