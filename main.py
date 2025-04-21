@@ -742,6 +742,10 @@ else:
 #else:
 #    st.write("No hay datos disponibles para mostrar en el mapa.")
 
+st.write("Columnas disponibles:", df_resultado.columns.tolist())
+st.write("Número total de filas:", len(df_resultado))
+st.write("Ejemplo de filas:", df_resultado[[columna_grafico, 'Latitud', 'Longitud']].dropna().head())
+
 
 #
 latitudes = df_filtrado["Latitud"].values
