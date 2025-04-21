@@ -1048,14 +1048,14 @@ if not df_resultado.empty:
                 ),
                 xaxis=dict(
                     title="Longitud",
-                    titlefont=dict(size=14, family="Arial", color='black'),
+                    #titlefont=dict(size=14, family="Arial", color='black'),
                     tickfont=dict(size=12, family="Arial", color='black'),
                     range=[-104.7, -103.3],  # Ajusta si tus datos cambian
                     showgrid=True
                 ),
                 yaxis=dict(
                     title="Latitud",
-                    titlefont=dict(size=14, family="Arial", color='black'),
+                    #tickfont=dict(size=14, family="Arial", color='black'),
                     tickfont=dict(size=12, family="Arial", color='black'),
                     range=[18.5, 19.7],  # Ajusta si tus datos cambian
                     scaleanchor="x",  # Mantiene proporción 1:1 entre lat/lon
