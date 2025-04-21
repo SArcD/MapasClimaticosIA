@@ -754,6 +754,10 @@ longitudes = df_filtrado["Longitud"].values
 st.write("Número total de estaciones:", len(df_filtrado))
 st.write("Valores únicos de coordenadas:", len(np.unique(list(zip(longitudes, latitudes)), axis=0)))
 st.write("Valores NaN en columna seleccionada:", df_resultado[columna_grafico].isna().sum())
+st.write("Latitudes únicas:", np.unique(latitudes))
+st.write("Longitudes únicas:", np.unique(longitudes))
+st.write("Valores válidos:", len(valores))
+st.write("Shape grid_lon:", grid_lon.shape)
 
 
 
