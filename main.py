@@ -8,8 +8,8 @@ import requests
 import streamlit as st
 
 # Token de acceso personal
-GITHUB_TOKEN = "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"
-
+#GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 # URL base del repositorio
 #github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
