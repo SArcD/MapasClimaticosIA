@@ -237,8 +237,8 @@ claves = claves_colima + claves_colima_cerca
 
 # Columnas numéricas disponibles
 columnas_numericas = [
-    ' Precipitación(mm)', ' Temperatura Media(ºC)', 
-    ' Temperatura Máxima(ºC)', ' Temperatura Mínima(ºC)', ' Evaporación(mm)'
+    'Precipitación(mm)', 'Temperatura Media(ºC)', 
+    'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
 ]
 
 # Función para obtener años disponibles
@@ -399,6 +399,7 @@ mes = st.selectbox("Selecciona el mes", options=list(meses.keys()), format_func=
 
 # Procesar datos seleccionados
 df_resultado = procesar_datos(ano, mes if mes != 0 else None, claves, output_dirs)
+df_resultado.columns = df_resultado.columns.str.strip()
 
 # Parámetros para radiación solar
 S0 = 1361  # Constante solar (W/m²)
@@ -478,7 +479,7 @@ if not df_resultado.empty:
         elevacion = row['Elevación (km)']
 
         # Corregir temperatura media
-        temp_media_original = row[' Temperatura Media(ºC)'] if ' Temperatura Media(ºC)' in row else np.nan
+        temp_media_original = row['Temperatura Media(ºC)'] if 'Temperatura Media(ºC)' in row else np.nan
         temp_media_corregida = temp_media_original + (elevacion * gradiente_temperatura) if not pd.isna(temp_media_original) else np.nan
         temperaturas_corregidas.append(temp_media_corregida)
 
@@ -1389,11 +1390,11 @@ if not df_resultado.empty:
 
         # Diccionario para las unidades según el parámetro
         unidades = {
-            " Temperatura Media(ºC)": "ºC",
-            " Temperatura Máxima(ºC)": "ºC",
-            " Temperatura Mínima(ºC)": "ºC",
-            " Precipitación(mm)": "mm",
-            " Evaporación(mm)": "mm",
+            "Temperatura Media(ºC)": "ºC",
+            "Temperatura Máxima(ºC)": "ºC",
+            "Temperatura Mínima(ºC)": "ºC",
+            "Precipitación(mm)": "mm",
+            "Evaporación(mm)": "mm",
             "Radiación Solar Promedio (W/m²)": "W/m²",
             "Radiación Solar Corregida (W/m²)": "W/m²"
         }
@@ -1621,8 +1622,8 @@ if st.button("Calcular interpolación"):
 # Parámetro a graficar
 parametro = st.selectbox(
     "Selecciona el parámetro para graficar",
-    [' Precipitación(mm)', ' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)', 
-     ' Temperatura Mínima(ºC)', ' Evaporación(mm)'],
+    ['Precipitación(mm)', 'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 
+     'Temperatura Mínima(ºC)', 'Evaporación(mm)'],
     key="parametro_selectbox"
 )
 
@@ -2056,8 +2057,8 @@ try:
     tree = cKDTree(coordenadas)
 
     # Columnas a imputar
-    columnas_imputar = [' Temperatura Media(ºC)', ' Temperatura Máxima(ºC)',
-                        ' Temperatura Mínima(ºC)', ' Precipitación(mm)']
+    columnas_imputar = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)',
+                        'Temperatura Mínima(ºC)', 'Precipitación(mm)']
 
     # Imputación geoespacial
     df_consolidado_imputado = df_consolidado_interpolado.apply(
@@ -2078,7 +2079,7 @@ try:
 
     # Seleccionar los datos para una estación y variable
     df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
-    df_estacion = df_estacion[['Fecha', ' Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', ' Temperatura Media(ºC)': 'y'})
+    df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'})
 
     # Crear y entrenar el modelo
     modelo = Prophet()
