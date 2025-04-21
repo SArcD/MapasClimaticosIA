@@ -843,7 +843,7 @@ if not df_resultado.empty:
             #columna = columna_grafico.strip()
 
             # 1. Filtrar valores válidos y sincronizar coordenadas
-            mascara_validos = ~df_filtrado[columna].isna()
+            mascara_validos = ~df_filtrado[columna_grafico].isna()
             longitudes = df_filtrado.loc[mascara_validos, "Longitud"].values
             latitudes = df_filtrado.loc[mascara_validos, "Latitud"].values
             valores = df_filtrado.loc[mascara_validos, columna].values
