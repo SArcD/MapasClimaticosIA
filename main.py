@@ -846,7 +846,7 @@ if not df_resultado.empty:
             mascara_validos = ~df_filtrado[columna_grafico].isna()
             longitudes = df_filtrado.loc[mascara_validos, "Longitud"].values
             latitudes = df_filtrado.loc[mascara_validos, "Latitud"].values
-            valores = df_filtrado.loc[mascara_validos, columna].values
+            valores = df_filtrado.loc[mascara_validos, columna_grafico].values
 
             # 2. Verificar si hay suficientes puntos para interpolar
             if len(valores) < 4:
