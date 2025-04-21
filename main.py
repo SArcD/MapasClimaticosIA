@@ -817,15 +817,60 @@ if not df_resultado.empty:
                 np.linspace(latitudes.min() - margen_lat, latitudes.max() + margen_lat, 100)
             )
 
+#            # Interpolar los datos
+#            metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
+#            if metodo_interpolacion in ["Linear", "Nearest"]:
+#                interpolados = griddata(
+#                    (longitudes, latitudes),
+#                    valores,
+#                    (grid_lon, grid_lat),
+#                    method=metodo_interpolacion.lower()
+#                )
+#            elif metodo_interpolacion == "IDW":
+#                # Implementación básica de IDW
+#                def idw_interpolation(x, y, values, xi, yi):
+#                    weights = 1 / np.sqrt((x - xi) ** 2 + (y - yi) ** 2 + 1e-10)
+#                    return np.sum(weights * values) / np.sum(weights)
+
+#                interpolados = np.zeros_like(grid_lon)
+#                for i in range(grid_lon.shape[0]):
+#                    for j in range(grid_lon.shape[1]):
+#                        interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
+
+#bloque inicia
             # Interpolar los datos
             metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
+            columna = columna_grafico.strip()
+
+            # 1. Filtrar valores válidos y sincronizar coordenadas
+            mascara_validos = ~df_resultado[columna].isna()
+            longitudes = df_resultado.loc[mascara_validos, "Longitud"].values
+            latitudes = df_resultado.loc[mascara_validos, "Latitud"].values
+            valores = df_resultado.loc[mascara_validos, columna].values
+
+            # 2. Verificar si hay suficientes puntos para interpolar
+            if len(valores) < 4:
+                st.warning("No hay suficientes estaciones con valores válidos para realizar la interpolación.")
+                st.stop()
+
+            # 3. Interpolación
             if metodo_interpolacion in ["Linear", "Nearest"]:
-                interpolados = griddata(
-                    (longitudes, latitudes),
-                    valores,
-                    (grid_lon, grid_lat),
-                    method=metodo_interpolacion.lower()
-                )
+                try:
+                    interpolados = griddata(
+                        (longitudes, latitudes),
+                        valores,
+                        (grid_lon, grid_lat),
+                        method=metodo_interpolacion.lower()
+                    )
+                except Exception as e:
+                    st.warning(f"Ocurrió un error con '{metodo_interpolacion}'. Usando 'nearest' como alternativa.")
+                    interpolados = griddata(
+                        (longitudes, latitudes),
+                        valores,
+                        (grid_lon, grid_lat),
+                        method="nearest"
+                    )
+
             elif metodo_interpolacion == "IDW":
                 # Implementación básica de IDW
                 def idw_interpolation(x, y, values, xi, yi):
@@ -836,7 +881,9 @@ if not df_resultado.empty:
                 for i in range(grid_lon.shape[0]):
                     for j in range(grid_lon.shape[1]):
                         interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
+#bloque nuevo termina
 
+            
             # Crear la figura
             fig = go.Figure()
 
