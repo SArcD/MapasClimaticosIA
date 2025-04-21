@@ -758,8 +758,8 @@ st.write("Valores únicos de coordenadas:", len(np.unique(list(zip(longitudes, l
 st.write("Valores NaN en columna seleccionada:", df_resultado[columna_grafico].isna().sum())
 st.write("Latitudes únicas:", np.unique(latitudes))
 st.write("Longitudes únicas:", np.unique(longitudes))
-st.write("Valores válidos:", len(valores))
-st.write("Shape grid_lon:", grid_lon.shape)
+#st.write("Valores válidos:", len(valores))
+#st.write("Shape grid_lon:", grid_lon.shape)
 
 
 
