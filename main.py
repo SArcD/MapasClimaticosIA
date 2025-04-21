@@ -745,6 +745,9 @@ else:
 
 #
 
+st.write("Número total de estaciones:", len(df_filtrado))
+st.write("Valores únicos de coordenadas:", len(np.unique(list(zip(longitudes, latitudes)), axis=0)))
+st.write("Valores NaN en columna seleccionada:", df_resultado[columna_grafico].isna().sum())
 
 
 
