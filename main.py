@@ -1593,13 +1593,13 @@ if not df_resultado.empty:
             title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
             xaxis=dict(
                 title="Longitud",
-                titlefont=dict(size=14, family="Arial"),
+                #titlefont=dict(size=14, family="Arial"),
                 tickfont=dict(size=12, family="Arial"),
                 range=[-104.7, -103.3]
             ),
             yaxis=dict(
                 title="Latitud",
-                titlefont=dict(size=14, family="Arial"),
+                #titlefont=dict(size=14, family="Arial"),
                 tickfont=dict(size=12, family="Arial"),
                 range=[18.5, 19.7]
             ),
