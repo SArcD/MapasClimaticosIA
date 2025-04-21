@@ -750,10 +750,10 @@ st.write("Ejemplo de filas:", df_resultado[[columna_grafico, 'Latitud', 'Longitu
 
 
 #
-latitudes = df_filtrado["Latitud"].values
-longitudes = df_filtrado["Longitud"].values
+#latitudes = df_filtrado["Latitud"].values
+#longitudes = df_filtrado["Longitud"].values
 
-st.write("Número total de estaciones:", len(df_filtrado))
+st.write("Número total de estaciones:", len(df_resultado))
 st.write("Valores únicos de coordenadas:", len(np.unique(list(zip(longitudes, latitudes)), axis=0)))
 st.write("Valores NaN en columna seleccionada:", df_resultado[columna_grafico].isna().sum())
 st.write("Latitudes únicas:", np.unique(latitudes))
@@ -840,13 +840,13 @@ if not df_resultado.empty:
 #bloque inicia
             # Interpolar los datos
             metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
-            columna = columna_grafico.strip()
+            #columna = columna_grafico.strip()
 
             # 1. Filtrar valores válidos y sincronizar coordenadas
-            mascara_validos = ~df_resultado[columna].isna()
-            longitudes = df_resultado.loc[mascara_validos, "Longitud"].values
-            latitudes = df_resultado.loc[mascara_validos, "Latitud"].values
-            valores = df_resultado.loc[mascara_validos, columna].values
+            mascara_validos = ~df_filtrado[columna].isna()
+            longitudes = df_filtrado.loc[mascara_validos, "Longitud"].values
+            latitudes = df_filtrado.loc[mascara_validos, "Latitud"].values
+            valores = df_filtrado.loc[mascara_validos, columna].values
 
             # 2. Verificar si hay suficientes puntos para interpolar
             if len(valores) < 4:
