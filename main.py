@@ -744,6 +744,8 @@ else:
 
 
 #
+latitudes = df_filtrado["Latitud"].values
+longitudes = df_filtrado["Longitud"].values
 
 st.write("Número total de estaciones:", len(df_filtrado))
 st.write("Valores únicos de coordenadas:", len(np.unique(list(zip(longitudes, latitudes)), axis=0)))
