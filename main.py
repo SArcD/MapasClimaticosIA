@@ -198,7 +198,7 @@ def read_ace2(file_path, selected_dims):
 #    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
 
 # Usar dimensiones por defecto (6000x6000)
-dim_por_defecto = (6000, 6000)
+dim_por_defecto = (5760, 5420)
 
 elevation_data = read_ace2(file_path, dim_por_defecto)
 
