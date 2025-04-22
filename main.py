@@ -1638,7 +1638,7 @@ st.markdown("""
 #                    coloring="fill",
 #                    showlabels=True,
 #                    labelfont=dict(size=10, color="black")
-                ),
+#                ),
 #                colorbar=dict(
 #                    title=unidades.get(columna_grafico, ""),  # Solo las unidades
 #                    len=0.8,
