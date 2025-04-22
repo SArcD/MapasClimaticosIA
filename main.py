@@ -183,19 +183,32 @@ def read_ace2(file_path, selected_dims):
         return None
 
 # Diagnosticar el archivo
-dimensiones_posibles = diagnosticar_archivo(file_path)
+#dimensiones_posibles = diagnosticar_archivo(file_path)
 
 # Si se encuentran dimensiones válidas
-if dimensiones_posibles:
-    # Permitir que el usuario seleccione dimensiones
-    seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
-    elevation_data = read_ace2(file_path, seleccion)
+#if dimensiones_posibles:
+#    # Permitir que el usuario seleccione dimensiones
+#    seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
+#    elevation_data = read_ace2(file_path, seleccion)
 
-    if elevation_data is not None:
-        tile_size = elevation_data.shape
-        st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
+#    if elevation_data is not None:
+#        tile_size = elevation_data.shape
+#        st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
+#else:
+#    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
+
+# Usar dimensiones por defecto (6000x6000)
+dim_por_defecto = (6000, 6000)
+
+elevation_data = read_ace2(file_path, dim_por_defecto)
+
+if elevation_data is not None:
+    tile_size = elevation_data.shape
+    st.success(f"Archivo procesado correctamente con dimensiones predeterminadas: {tile_size}.")
 else:
-    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
+    st.error("No se pudo procesar el archivo ACE2 con dimensiones por defecto.")
+
+
 
 #############
 
