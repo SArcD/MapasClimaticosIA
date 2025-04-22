@@ -2470,7 +2470,7 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
     return coordenadas_nombres
 
-@st.cache_data
+#@st.cache_data
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame.
