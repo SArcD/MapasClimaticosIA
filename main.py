@@ -1517,6 +1517,290 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+## Parámetros para corrección
+#gradiente_temperatura = -6.5  # °C/km
+#incremento_radiacion = 0.12   # W/m²/km
+
+## Escala de color personalizada
+#coolwarm_scale = [
+#    [0.0, 'rgb(59,76,192)'],
+#    [0.35, 'rgb(116,173,209)'],
+#    [0.5, 'rgb(221,221,221)'],
+#    [0.65, 'rgb(244,109,67)'],
+#    [1.0, 'rgb(180,4,38)']
+#]
+
+## Cargar el archivo GeoJSON
+#try:
+#    with open('Colima.json', 'r', encoding='latin-1') as file:
+#        colima_geojson = json.load(file)
+#except Exception as e:
+#    st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
+#    st.stop()
+
+## Función para obtener elevación interpolada
+#def obtener_elevacion_interpolada(grid_lon, grid_lat, elevation_data, tile_size):
+#    elevacion = np.zeros_like(grid_lon)
+#    for i in range(grid_lon.shape[0]):
+#        for j in range(grid_lon.shape[1]):
+#            lon, lat = grid_lon[i, j], grid_lat[i, j]
+#            lat_idx = int(max(0, min((30 - lat) * tile_size[0] / 15, tile_size[0] - 1)))
+#            lon_idx = int(max(0, min((lon + 105) * tile_size[1] / 15, tile_size[1] - 1)))
+#            elevacion[i, j] = elevation_data[lat_idx, lon_idx] / 1000  # Convertir a km
+#    return elevacion
+
+## Función de interpolación IDW
+#def idw_interpolation(x, y, values, xi, yi, power=2):
+#    weights = 1 / ((x - xi) ** 2 + (y - yi) ** 2 + 1e-10) ** (power / 2)
+#    return np.sum(weights * values) / np.sum(weights)
+
+## Mostrar mapa con corrección de valores interpolados
+#if not df_resultado.empty:
+#    # Selección del parámetro y método de interpolación
+#    columna_grafico = st.selectbox(
+#        "Seleccionar el parámetro para graficar",
+#        options=columnas_numericas + [
+#            "Radiación Solar Promedio (W/m²)",
+#            "Radiación Solar Corregida (W/m²)"
+#        ]
+#    )
+#    metodo_interpolacion = st.selectbox(
+#        "Seleccionar el método de interpolación",
+#        ["Linear", "Nearest", "IDW"]
+#    )
+
+#    # Filtrar estaciones válidas
+#    df_filtrado = df_resultado.dropna(subset=[columna_grafico])
+
+#    if not df_filtrado.empty:
+#        latitudes = df_filtrado["Latitud"].values
+#        longitudes = df_filtrado["Longitud"].values
+#        valores = df_filtrado[columna_grafico].values
+
+#        # Crear una malla de puntos para la interpolación con márgenes
+#        margen_long = 0.08 * (longitudes.max() - longitudes.min())
+#        margen_lat = 0.08 * (latitudes.max() - latitudes.min())
+#
+#        grid_lon, grid_lat = np.meshgrid(
+#            np.linspace(longitudes.min() - margen_long, longitudes.max() + margen_long, 100),
+#            np.linspace(latitudes.min() - margen_lat, latitudes.max() + margen_lat, 100)
+#        )
+
+#        # Realizar la interpolación
+#        if metodo_interpolacion in ["Linear", "Nearest"]:
+#            interpolados = griddata(
+#                (longitudes, latitudes),
+#                valores,
+#                (grid_lon, grid_lat),
+#                method=metodo_interpolacion.lower()
+#            )
+#        elif metodo_interpolacion == "IDW":
+#            interpolados = np.zeros_like(grid_lon)
+#            for i in range(grid_lon.shape[0]):
+#                for j in range(grid_lon.shape[1]):
+#                    interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
+
+#        # Obtener elevaciones interpoladas
+#        elevacion_interpolada = obtener_elevacion_interpolada(grid_lon, grid_lat, elevation_data, tile_size)
+
+#        # Corregir valores interpolados
+#        if "Temperatura" in columna_grafico:
+#            valores_corregidos = interpolados + (gradiente_temperatura * elevacion_interpolada)
+#        elif "Radiación" in columna_grafico:
+#            valores_corregidos = interpolados * (1 + 0.0*incremento_radiacion * elevacion_interpolada)
+#        else:
+#            valores_corregidos = interpolados
+
+#        # Diccionario para las unidades según el parámetro
+#        unidades = {
+#            "Temperatura Media(ºC)": "ºC",
+#            "Temperatura Máxima(ºC)": "ºC",
+#            "Temperatura Mínima(ºC)": "ºC",
+#            "Precipitación(mm)": "mm",
+ #           "Evaporación(mm)": "mm",
+ #           "Radiación Solar Promedio (W/m²)": "W/m²",
+  #          "Radiación Solar Corregida (W/m²)": "W/m²"
+#        }
+
+#        # Crear la figura
+#        fig = go.Figure()
+
+#        # Añadir contornos corregidos
+#        fig.add_trace(
+#            go.Contour(
+#                z=valores_corregidos,
+#                x=grid_lon[0],
+#                y=grid_lat[:, 0],
+#                colorscale=coolwarm_colorscale,
+#                opacity=0.7,
+#                line=dict(color="black", width=1.0),  # Líneas de contorno más gruesas
+#                contours=dict(
+#                    coloring="fill",
+#                    showlabels=True,
+#                    labelfont=dict(size=10, color="black")
+                ),
+#                colorbar=dict(
+#                    title=unidades.get(columna_grafico, ""),  # Solo las unidades
+#                    len=0.8,
+#                    thickness=20,
+#                    x=1.1,
+#                    y=0.5
+#                ),
+#                name=f"Interpolación corregida ({columna_grafico.strip()})"
+#            )
+#        )
+
+
+#        # Añadir puntos de las estaciones
+#        fig.add_trace(
+#            go.Scatter(
+#                x=longitudes,
+ #               y=latitudes,
+#                mode="markers",
+#                marker=dict(
+#                    size=10,
+#                    color="black"
+#                ),
+#                text=df_filtrado["Clave"],
+#                hoverinfo="text",
+#                name="Estaciones"
+#            )
+#        )
+
+#        # Añadir contornos de los municipios
+#        for feature in colima_geojson["features"]:
+#            geometry = feature["geometry"]
+#            properties = feature["properties"]
+
+#            if "isla" not in properties.get("name", "").lower():
+#                if geometry["type"] == "Polygon":
+#                    for coordinates in geometry["coordinates"]:
+#                        x_coords, y_coords = zip(*coordinates)
+#                        fig.add_trace(
+#                            go.Scatter(
+#                                x=x_coords,
+#                                y=y_coords,
+#                                mode="lines",
+#                                line=dict(color="black", width=2),
+#                                showlegend=False
+#                            )
+#                        )
+#                elif geometry["type"] == "MultiPolygon":
+#                    for polygon in geometry["coordinates"]:
+#                        for coordinates in polygon:
+#                            x_coords, y_coords = zip(*coordinates)
+#                            fig.add_trace(
+#                                go.Scatter(
+#                                    x=x_coords,
+#                                    y=y_coords,
+#                                    mode="lines",
+#                                    line=dict(color="black", width=2),
+#                                    showlegend=False
+#                                )
+#                            )
+
+#        # Configuración del diseño
+#        #fig.update_layout(
+#        #    title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+#        #    xaxis=dict(
+#        #        title="Longitud",
+#                #titlefont=dict(size=14, family="Arial"),
+#        #        tickfont=dict(size=12, family="Arial"),
+#        #        range=[-104.7, -103.3]
+#        #    ),
+#        #    yaxis=dict(
+#        #        title="Latitud",
+#                #titlefont=dict(size=14, family="Arial"),
+#        #        tickfont=dict(size=12, family="Arial"),
+#        #        range=[18.5, 19.7],
+#        #        scaleanchor="x"
+#        #    ),
+#        #    width=1000,
+#        #    height=600,
+#        #    margin=dict(l=20, r=20, t=50, b=20)
+#        #)
+
+#        # Configuración del diseño
+                        # Configuración consolidada del layout del gráfico
+#        fig.update_layout(
+#            title=dict(
+#                text=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+#                x=0.5,
+#                xanchor='center',
+#                font=dict(size=18)
+#            ),
+#            xaxis=dict(
+#                title=dict(
+#                    text="Longitud",
+#                    font=dict(size=14, family="Arial", color='black')
+#                ),
+#                tickfont=dict(size=12, family="Arial", color='black'),
+#                range=[-104.7, -103.3],
+#                showgrid=False
+#            ),
+#            yaxis=dict(
+#                title=dict(
+#                    text="Latitud",
+#                    font=dict(size=14, family="Arial", color='black')
+#                ),
+#                tickfont=dict(size=12, family="Arial", color='black'),
+#                range=[18.5, 19.7],
+#                scaleanchor="x",
+#                showgrid=False
+#            ),
+#            plot_bgcolor="white",
+#            paper_bgcolor="white",
+#            width=1000,
+#            height=600,
+#            margin=dict(l=20, r=20, t=50, b=20),
+#            showlegend=True
+#        )
+
+#        # Mostrar gráfico
+#        st.plotly_chart(fig, use_container_width=True)
+        
+##        # Configuración del diseño
+##        fig.update_layout(
+##            title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+##            xaxis=dict(
+##                title="Longitud",
+##                titlefont=dict(size=14, family="Arial"),
+##                tickfont=dict(size=12, family="Arial"),
+##                range=[-104.7, -103.3]
+##            ),
+##            yaxis=dict(
+##                title="Latitud",
+##                titlefont=dict(size=14, family="Arial"),
+##                tickfont=dict(size=12, family="Arial"),
+##                range=[18.5, 19.7]
+##            ),
+##            width=1000,
+##            height=600,
+##            margin=dict(l=20, r=20, t=50, b=20)
+##        )
+
+#                    # Ajustar el título dinámicamente según la selección de mes
+##        if mes == 0:
+##            titulo_mes = "Promedio Anual"
+##        else:
+##            titulo_mes = f"Mes {mes}"
+
+##        # Configuración del título del gráfico
+##        fig.update_layout(
+##        title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+##        xaxis_title="Longitud",
+##        yaxis_title="Latitud",
+##        margin=dict(l=0, r=0, t=50, b=0)
+##        )
+
+#        # Mostrar gráfico
+#        #st.plotly_chart(fig, use_container_width=True)
+#    else:
+#        st.warning("No hay estaciones válidas para la columna seleccionada.")
+#else:
+#    st.write("No hay datos disponibles.")
+
+
 # Parámetros para corrección
 gradiente_temperatura = -6.5  # °C/km
 incremento_radiacion = 0.12   # W/m²/km
@@ -1532,7 +1816,7 @@ coolwarm_scale = [
 
 # Cargar el archivo GeoJSON
 try:
-    with open('Colima.json', 'r', encoding='latin-1') as file:
+    with open('Colima.JSON', 'r', encoding='latin-1') as file:
         colima_geojson = json.load(file)
 except Exception as e:
     st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
@@ -1700,101 +1984,27 @@ if not df_resultado.empty:
                             )
 
         # Configuración del diseño
-        #fig.update_layout(
-        #    title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
-        #    xaxis=dict(
-        #        title="Longitud",
-                #titlefont=dict(size=14, family="Arial"),
-        #        tickfont=dict(size=12, family="Arial"),
-        #        range=[-104.7, -103.3]
-        #    ),
-        #    yaxis=dict(
-        #        title="Latitud",
-                #titlefont=dict(size=14, family="Arial"),
-        #        tickfont=dict(size=12, family="Arial"),
-        #        range=[18.5, 19.7],
-        #        scaleanchor="x"
-        #    ),
-        #    width=1000,
-        #    height=600,
-        #    margin=dict(l=20, r=20, t=50, b=20)
-        #)
-
-        # Configuración del diseño
-                        # Configuración consolidada del layout del gráfico
         fig.update_layout(
-            title=dict(
-                text=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
-                x=0.5,
-                xanchor='center',
-                font=dict(size=18)
-            ),
+            title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
             xaxis=dict(
-                title=dict(
-                    text="Longitud",
-                    font=dict(size=14, family="Arial", color='black')
-                ),
-                tickfont=dict(size=12, family="Arial", color='black'),
-                range=[-104.7, -103.3],
-                showgrid=False
+                title="Longitud",
+#                titlefont=dict(size=14, family="Arial"),
+                tickfont=dict(size=12, family="Arial"),
+                range=[-104.7, -103.3]
             ),
             yaxis=dict(
-                title=dict(
-                    text="Latitud",
-                    font=dict(size=14, family="Arial", color='black')
-                ),
-                tickfont=dict(size=12, family="Arial", color='black'),
-                range=[18.5, 19.7],
-                scaleanchor="x",
-                showgrid=False
+                title="Latitud",
+#                titlefont=dict(size=14, family="Arial"),
+                tickfont=dict(size=12, family="Arial"),
+                range=[18.5, 19.7]
             ),
-            plot_bgcolor="white",
-            paper_bgcolor="white",
             width=1000,
             height=600,
-            margin=dict(l=20, r=20, t=50, b=20),
-            showlegend=True
+            margin=dict(l=20, r=20, t=50, b=20)
         )
 
         # Mostrar gráfico
         st.plotly_chart(fig, use_container_width=True)
-        
-#        # Configuración del diseño
-#        fig.update_layout(
-#            title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
-#            xaxis=dict(
-#                title="Longitud",
-#                titlefont=dict(size=14, family="Arial"),
-#                tickfont=dict(size=12, family="Arial"),
-#                range=[-104.7, -103.3]
-#            ),
-#            yaxis=dict(
-#                title="Latitud",
-#                titlefont=dict(size=14, family="Arial"),
-#                tickfont=dict(size=12, family="Arial"),
-#                range=[18.5, 19.7]
-#            ),
-#            width=1000,
-#            height=600,
-#            margin=dict(l=20, r=20, t=50, b=20)
-#        )
-
-                    # Ajustar el título dinámicamente según la selección de mes
-#        if mes == 0:
-#            titulo_mes = "Promedio Anual"
-#        else:
-#            titulo_mes = f"Mes {mes}"
-
-#        # Configuración del título del gráfico
-#        fig.update_layout(
-#        title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
-#        xaxis_title="Longitud",
-#        yaxis_title="Latitud",
-#        margin=dict(l=0, r=0, t=50, b=0)
-#        )
-
-        # Mostrar gráfico
-        #st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("No hay estaciones válidas para la columna seleccionada.")
 else:
