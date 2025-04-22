@@ -1092,7 +1092,7 @@ if not df_resultado.empty:
             # Añadir contornos corregidos
             fig.add_trace(
                 go.Contour(
-                    z=valores_corregidos,
+                    z=interpolados,
                     x=grid_lon[0],
                     y=grid_lat[:, 0],
                     colorscale=coolwarm_colorscale,
