@@ -1832,6 +1832,7 @@ except Exception as e:
     st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
     st.stop()
 
+@st.cache_data
 # Función para obtener elevación interpolada
 def obtener_elevacion_interpolada(grid_lon, grid_lat, elevation_data, tile_size):
     elevacion = np.zeros_like(grid_lon)
@@ -1843,6 +1844,7 @@ def obtener_elevacion_interpolada(grid_lon, grid_lat, elevation_data, tile_size)
             elevacion[i, j] = elevation_data[lat_idx, lon_idx] / 1000  # Convertir a km
     return elevacion
 
+@st.cache_data
 # Función de interpolación IDW
 def idw_interpolation(x, y, values, xi, yi, power=2):
     weights = 1 / ((x - xi) ** 2 + (y - yi) ** 2 + 1e-10) ** (power / 2)
@@ -2421,6 +2423,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 import streamlit as st
 
+@st.cache_data
 def recolectar_coordenadas_nombres(claves, output_dirs):
     """
     Recolecta los nombres y coordenadas geográficas de las estaciones.
@@ -2454,6 +2457,7 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
     return coordenadas_nombres
 
+@st.cache_data
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame.
@@ -2521,6 +2525,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
     return pd.DataFrame(datos_consolidados)
 
+@st.cache_data
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
     """
     Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
