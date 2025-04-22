@@ -958,7 +958,7 @@ if not df_resultado.empty:
  #                                       line=dict(color="black", width=2),
  #                                       showlegend=False
  #                                   )
-                                )
+ #                               )
 
             # Configuración del diseño
 ##            fig.update_layout(
