@@ -2608,24 +2608,58 @@ try:
     df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
     st.success("Archivo consolidado con datos imputados guardado correctamente.")
 
-    from prophet import Prophet
+    #from prophet import Prophet
+
+    ## Seleccionar los datos para una estación y variable
+    #df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
+    #df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'})
+
+    ## Crear y entrenar el modelo
+    #modelo = Prophet()
+    #modelo.fit(df_estacion)
+
+    ## Generar predicciones futuras
+    #futuro = modelo.make_future_dataframe(periods=365)  # Predicciones para 1 año
+    #predicciones = modelo.predict(futuro)
+
+    ## Visualizar resultados
+    #modelo.plot(predicciones)
+
+
+    from prophet import Prophet    
+    import matplotlib.pyplot as plt
 
     # Seleccionar los datos para una estación y variable
     df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
-    df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'})
 
-    # Crear y entrenar el modelo
-    modelo = Prophet()
-    modelo.fit(df_estacion)
+    # Verificar que existe la columna Fecha y al menos una variable con datos
+    if 'Fecha' not in df_estacion.columns:
+        st.warning("La columna 'Fecha' no está disponible para la estación seleccionada.")
+    else:
+        # Verificar que hay suficientes datos en la variable
+        df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(
+            columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'}
+        )
 
-    # Generar predicciones futuras
-    futuro = modelo.make_future_dataframe(periods=365)  # Predicciones para 1 año
-    predicciones = modelo.predict(futuro)
+        if df_estacion['y'].notna().sum() < 2:
+            st.warning("La estación C06001 no tiene suficientes datos válidos para entrenar el modelo Prophet.")
+        else:
+            try:
+                # Crear y entrenar el modelo
+                modelo = Prophet()
+                modelo.fit(df_estacion)
 
-    # Visualizar resultados
-    modelo.plot(predicciones)
+                # Generar predicciones futuras
+                futuro = modelo.make_future_dataframe(periods=365)
+                predicciones = modelo.predict(futuro)
 
+                # Visualizar resultados
+                fig = modelo.plot(predicciones)
+                st.subheader("Predicción de Temperatura Media (ºC) con Prophet")
+                st.pyplot(fig)
 
+            except Exception as e:
+                st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
 
 except Exception as e:
     st.error(f"Error en el flujo de procesamiento: {e}")
@@ -2633,4 +2667,4 @@ except Exception as e:
 
 
 
-
+    
