@@ -194,8 +194,8 @@ if dimensiones_posibles:
     if elevation_data is not None:
         tile_size = elevation_data.shape
         st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
-    else:
-        st.error("No se pudieron determinar dimensiones válidas para el archivo.")
+else:
+    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
 
 ## Usar dimensiones por defecto (6000x6000)
 #dim_por_defecto = (5760, 5420)
