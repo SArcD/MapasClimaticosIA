@@ -17,6 +17,7 @@ GITHUB_TOKEN = "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"
 # URL base del repositorio en GitHub
 github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
+@st.cache_data
 # Función para obtener la lista de archivos en una carpeta desde GitHub
 def list_files_from_github(folder_path):
     url = github_base_url + folder_path
@@ -29,6 +30,7 @@ def list_files_from_github(folder_path):
         st.error(f"Error al listar archivos en {folder_path}: {e}")
         return []
 
+@st.cache_data
 # Función para leer un archivo CSV desde GitHub
 def read_csv_from_github(file_path):
     # Convertir la URL a RAW para obtener el contenido del archivo
@@ -69,7 +71,7 @@ output_dir_colima = "datos_estaciones_colima"
 output_dir_cerca = "datos_estaciones_cerca_colima"
 
 
-
+@st.cache_data
 # Descargar archivos desde enlaces utilizando requests
 def download_files_from_links(file_links, output_dir):
     os.makedirs(output_dir, exist_ok=True)
@@ -129,6 +131,7 @@ if not os.path.exists(file_path):
         st.error(f"Error al descargar el archivo ACE2: {e}")
         st.stop()
 
+@st.cache_data
 # Diagnóstico de archivo
 def diagnosticar_archivo(file_path):
     """
@@ -161,6 +164,8 @@ def diagnosticar_archivo(file_path):
         st.error(f"Error al diagnosticar el archivo: {e}")
         return None
 
+
+@st.cache_data
 # Leer y calcular dimensiones automáticamente
 def read_ace2(file_path, selected_dims):
     """
@@ -241,6 +246,7 @@ columnas_numericas = [
     'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
 ]
 
+@st.cache_data
 # Función para obtener años disponibles
 def obtener_anos_disponibles(claves, output_dirs):
     anos_disponibles = set()
@@ -265,6 +271,7 @@ def obtener_anos_disponibles(claves, output_dirs):
 #    elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
 #    return max(0, elevacion)  # Evitar valores negativos
 
+@st.cache_data
 def obtener_elevacion(lat, lon, tile_size, elevation_data):
     """
     Obtiene la elevación en kilómetros desde el archivo ACE2 usando latitud y longitud.
@@ -292,7 +299,7 @@ def obtener_elevacion(lat, lon, tile_size, elevation_data):
     except Exception as e:
         raise RuntimeError(f"Error al calcular elevación para lat={lat}, lon={lon}: {e}")
 
-
+@st.cache_data
 def procesar_datos(ano, mes, claves, output_dirs):
     datos_procesados = []
 
@@ -407,6 +414,8 @@ S0 = 1361  # Constante solar (W/m²)
 Ta = 0.75  # Transmisión atmosférica promedio
 k = 0.12   # Incremento de radiación por km de altitud
 
+
+@st.cache_data
 def calculate_annual_radiation(latitude, altitude):
     """Calcular radiación solar promedio anual considerando declinación solar y ángulo horario."""
     total_radiation = 0
@@ -433,6 +442,7 @@ def calculate_annual_radiation(latitude, altitude):
     return total_radiation / 365  # Promedio anual
 
 
+@st.cache_data
 def calculate_monthly_radiation(latitude, altitude, days_in_month):
     """Calcular radiación solar promedio mensual."""
     total_radiation = 0
