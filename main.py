@@ -140,7 +140,7 @@ def diagnosticar_archivo(file_path):
     try:
         # Tamaño del archivo en bytes
         file_size_bytes = os.path.getsize(file_path)
-        st.write(f"Tamaño del archivo: {file_size_bytes} bytes")
+        #st.write(f"Tamaño del archivo: {file_size_bytes} bytes")
 
         # Verificar divisibilidad por el tamaño de float32 (4 bytes)
         if file_size_bytes % 4 != 0:
@@ -149,7 +149,7 @@ def diagnosticar_archivo(file_path):
 
         # Calcular número total de elementos
         num_elements = file_size_bytes // 4
-        st.write(f"Número total de elementos (float32): {num_elements}")
+        #st.write(f"Número total de elementos (float32): {num_elements}")
 
         # Buscar dimensiones cuadradas o rectangulares
         possible_dims = []
@@ -158,7 +158,7 @@ def diagnosticar_archivo(file_path):
                 cols = num_elements // rows
                 possible_dims.append((rows, cols))
 
-        st.write(f"Dimensiones posibles: {possible_dims}")
+        #st.write(f"Dimensiones posibles: {possible_dims}")
         return possible_dims
     except Exception as e:
         st.error(f"Error al diagnosticar el archivo: {e}")
