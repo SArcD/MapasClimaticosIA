@@ -2613,7 +2613,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
 
 
-st.cache_data
+#st.cache_data
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
     """
     Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
