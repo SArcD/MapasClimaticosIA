@@ -2871,7 +2871,13 @@ try:
     # --- Predicción con Prophet ---
     if estaciones_disponibles:
         st.subheader("Predicción con Prophet")
-        variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
+        #variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
+        variables_disponibles = [
+            'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)',
+            'Precipitación(mm)', 'Evaporación(mm)',
+            'Radiación Solar Promedio (W/m²)', 'Radiación Solar Corregida (W/m²)'
+]
+
         estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
         variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
 
