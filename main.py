@@ -2865,18 +2865,36 @@ try:
 
                         st.subheader("Resumen por Década")
 
+                        #fig_bar = px.bar(
+                        #    resumen_decadas,
+                        #    x='Década',
+                        #    y=f'Promedio de {variable_seleccionada} (°C)',
+                        #    color=f'Promedio de {variable_seleccionada} (°C)',
+                        #    color_continuous_scale='thermal',
+                        #    title='Promedio por Década',
+                        #    labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
+                        #    height=450
+                        #)
+                        #fig_bar.update_layout(xaxis_title="Década", yaxis_title="°C")
+                        #st.plotly_chart(fig_bar)
+
                         fig_bar = px.bar(
                             resumen_decadas,
                             x='Década',
                             y=f'Promedio de {variable_seleccionada} (°C)',
                             color=f'Promedio de {variable_seleccionada} (°C)',
-                            color_continuous_scale='thermal',
-                            title='Promedio por Década',
+                            color_continuous_scale='RdBu_r',  # Alternativas: 'RdYlBu_r', 'Blues', 'Viridis'
+                            title=f'{variable_seleccionada} Promedio por Década',
                             labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
                             height=450
                         )
-                        fig_bar.update_layout(xaxis_title="Década", yaxis_title="°C")
+                        fig_bar.update_layout(
+                            xaxis_title="Década",
+                            yaxis_title="°C",
+                            plot_bgcolor="white"
+                        )
                         st.plotly_chart(fig_bar)
+
 
                     
 
