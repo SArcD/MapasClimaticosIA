@@ -2914,10 +2914,16 @@ try:
                             df = df.sort_values('Año').reset_index(drop=True)
 
                             # Crear una serie temporal con índice de años
-                            serie = pd.Series(df[columna_valor].values, index=pd.PeriodIndex(df['Año'], freq='Y'))
+                            #serie = pd.Series(df[columna_valor].values, index=pd.PeriodIndex(df['Año'], freq='Y'))
 
                             # Aplicar STL (descomposición robusta)
-                            stl = STL(serie, seasonal=7, robust=True)
+                            #stl = STL(serie, seasonal=7, robust=True)
+                            serie = pd.Series(df[columna_valor].values, index=pd.date_range(start=f"{df['Año'].min()}-01-01", periods=len(df), freq='Y'))
+
+                            # Usamos un periodo estacional de 11 si buscamos ciclos solares
+                            stl = STL(serie, period=11, robust=True)
+
+                            
                             resultado = stl.fit()
 
                             # FFT sobre la tendencia (podría hacerse sobre la serie completa también)
