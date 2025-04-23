@@ -2769,6 +2769,7 @@ try:
             df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
             # Forzar frecuencia mensual si hay al menos 2 datos
             #df_estacion = df_estacion.set_index('ds').asfreq('MS').reset_index()
+            df_estacion = df_estacion.sort_values('ds')  # Asegura orden cronológico
 
 
             if df_estacion['y'].notna().sum() < 2:
