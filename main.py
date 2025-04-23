@@ -2938,7 +2938,40 @@ try:
                         # Este bloque solo define la función. Para usarla:
                         # resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
                         # Y luego puedes graficar tendencia o espectro si gustas.
-                        espectro
+                        # Agrupar para obtener radiación promedio anual por estación seleccionada
+                        #estacion_objetivo = st.selectbox("Selecciona una estación para análisis FFT", df_consolidado_imputado['Clave'].unique())
+                        estacion_objetivo = estacion_seleccionada
+                        df_radiacion_anual = (
+                            df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_objetivo]
+                            .groupby(df_consolidado_imputado['Fecha'].dt.year)
+                            ['Radiación Solar Corregida (W/m²)']
+                            .mean()
+                            .reset_index()
+                            .rename(columns={'Fecha': 'Año', 'Radiación Solar Corregida (W/m²)': 'Radiación Promedio Anual (W/m²)'})
+                        )
+                        # Ejecutar descomposición y FFT
+                        resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
+
+                        st.subheader("Tendencia de la Radiación Solar Anual")
+                        fig_tendencia, ax1 = plt.subplots()
+                        ax1.plot(resultado_stl.trend.index.year, resultado_stl.trend, color='darkgreen')
+                        ax1.set_title("Tendencia (STL)")
+                        ax1.set_xlabel("Año")
+                        ax1.set_ylabel("W/m²")
+                        st.pyplot(fig_tendencia)
+
+                        st.subheader("Espectro de Frecuencia (Fourier)")
+                        fig_fft, ax2 = plt.subplots()
+                        ax2.plot(espectro_fft['Periodo (años)'], espectro_fft['Amplitud'], color='purple')
+                        ax2.set_xlim(0, 30)
+                        ax2.set_xlabel("Periodo (años)")
+                        ax2.set_ylabel("Amplitud")
+                        ax2.set_title("Análisis de Periodicidad (Fourier)")
+                        st.pyplot(fig_fft)
+
+
+
+
 
 
 
