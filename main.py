@@ -2970,6 +2970,9 @@ try:
                         ax1.set_title("Tendencia (STL)")
                         ax1.set_xlabel("Año")
                         ax1.set_ylabel("W/m²")
+                        ax1.set_ylim(df['Radiación Promedio Anual (W/m²)'].quantile(0.05), 
+                        df['Radiación Promedio Anual (W/m²)'].quantile(0.95))
+
                         st.pyplot(fig_tendencia)
 
                         st.subheader("Espectro de Frecuencia (Fourier)")
