@@ -2767,6 +2767,9 @@ try:
         else:
             df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
             df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
+            # Forzar frecuencia mensual si hay al menos 2 datos
+            df_estacion = df_estacion.set_index('ds').asfreq('MS').reset_index()
+
 
             if df_estacion['y'].notna().sum() < 2:
                 st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
