@@ -2928,8 +2928,13 @@ try:
 
                             # FFT sobre la tendencia (podría hacerse sobre la serie completa también)
                             tendencia = resultado.trend.dropna().values
-                            n = len(tendencia)
-                            fft_vals = np.abs(fft(tendencia - np.mean(tendencia)))
+                            residual = resultado.resid.dropna().values
+                            n = len(residual)
+                            fft_vals = np.abs(fft(residual - np.mean(residual)))
+
+                            
+                            #n = len(tendencia)
+                            #fft_vals = np.abs(fft(tendencia - np.mean(tendencia)))
                             fft_freqs = fftfreq(n, d=1)  # d=1 año entre puntos
 
                             # Filtrar solo frecuencias positivas
