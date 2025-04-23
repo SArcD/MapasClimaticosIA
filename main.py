@@ -2816,12 +2816,18 @@ try:
                         import pandas as pd
 
                         # Extraer la componente estacional yearly
-                        componente_yearly = modelo.predict_seasonal_components(futuro)
+                        #componente_yearly = modelo.predict_seasonal_components(futuro)
+                        componente_yearly = modelo.predict(futuro)
+
 
                         # Asegurar que los datos están disponibles
                         if 'yearly' in componente_yearly.columns:
                             # Agregar columna de día del año
+                            #componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
+                            componente_yearly = predicciones[['ds', 'yearly']].copy()
                             componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
+
+                            promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
 
                             # Agrupar por día del año y promediar para suavizar la gráfica
                             promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
