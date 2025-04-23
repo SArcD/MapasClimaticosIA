@@ -2626,40 +2626,53 @@ try:
     #modelo.plot(predicciones)
 
 
-    from prophet import Prophet    
+    from prophet import Prophet
     import matplotlib.pyplot as plt
 
-    # Seleccionar los datos para una estación y variable
-    df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == 'C06001']
+    # Obtener lista de estaciones con datos
+    estaciones_disponibles = df_consolidado_imputado['Clave'].unique().tolist()
+    variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
 
-    # Verificar que existe la columna Fecha y al menos una variable con datos
-    if 'Fecha' not in df_estacion.columns:
-        st.warning("La columna 'Fecha' no está disponible para la estación seleccionada.")
+    # Menús interactivos
+    st.subheader("Predicción con Prophet")
+    estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
+    variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
+
+    # Filtrar la estación
+    df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
+
+    # Verificar columna 'Fecha' y variable seleccionada
+    if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
+        st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
     else:
-        # Verificar que hay suficientes datos en la variable
-        df_estacion = df_estacion[['Fecha', 'Temperatura Media(ºC)']].rename(
-            columns={'Fecha': 'ds', 'Temperatura Media(ºC)': 'y'}
-        )
+        # Preparar datos para Prophet
+        df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
+
+        # Eliminar valores faltantes y fechas duplicadas
+        df_estacion = df_estacion.dropna(subset=['ds', 'y'])
+        df_estacion = df_estacion.drop_duplicates(subset=['ds'])
 
         if df_estacion['y'].notna().sum() < 2:
-            st.warning("La estación C06001 no tiene suficientes datos válidos para entrenar el modelo Prophet.")
+            st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
         else:
-            try:
-                # Crear y entrenar el modelo
-                modelo = Prophet()
-                modelo.fit(df_estacion)
+            with st.spinner("Entrenando modelo Prophet..."):
+                try:
+                    modelo = Prophet()
+                    modelo.fit(df_estacion)
 
-                # Generar predicciones futuras
-                futuro = modelo.make_future_dataframe(periods=365)
-                predicciones = modelo.predict(futuro)
+                    # Generar predicción para 365 días
+                    futuro = modelo.make_future_dataframe(periods=365)
+                    predicciones = modelo.predict(futuro)
 
-                # Visualizar resultados
-                fig = modelo.plot(predicciones)
-                st.subheader("Predicción de Temperatura Media (ºC) con Prophet")
-                st.pyplot(fig)
+                    # Mostrar resultado
+                    fig = modelo.plot(predicciones)
+                    st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
+                    st.pyplot(fig)
 
-            except Exception as e:
-                st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
+                except Exception as e:
+                    st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
+
+
 
 except Exception as e:
     st.error(f"Error en el flujo de procesamiento: {e}")
