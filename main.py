@@ -2779,14 +2779,41 @@ try:
                         futuro = modelo.make_future_dataframe(periods=365)
                         predicciones = modelo.predict(futuro)
 
-                        fig_pred = modelo.plot(predicciones)
-                        st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
-                        st.pyplot(fig_pred)
+                        #fig_pred = modelo.plot(predicciones)
+                        #st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
+                        #st.pyplot(fig_pred)
 
-                        fig_componentes = modelo.plot_components(predicciones)
-                        st.subheader("Componentes de la predicción")
-                        st.pyplot(fig_componentes)
+                        #fig_componentes = modelo.plot_components(predicciones)
+                        #st.subheader("Componentes de la predicción")
+                        #st.pyplot(fig_componentes)
 
+                        import plotly.graph_objects as go
+
+                        # --- Gráfico de predicción ---
+                        fig_pred = go.Figure()
+                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat'], name='Predicción', line=dict(color='blue')))
+                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_upper'], name='Intervalo superior', line=dict(color='lightblue')))
+                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_lower'], name='Intervalo inferior', line=dict(color='lightblue'), fill='tonexty'))
+
+                        fig_pred.update_layout(
+                            title=f"Predicción para {variable_seleccionada} ({estacion_seleccionada})",
+                            xaxis_title="Fecha", yaxis_title="Valor Predicho"
+                        )
+                        st.plotly_chart(fig_pred)
+
+                        # --- Componentes de la predicción ---
+                        fig_trend = go.Figure()
+                        fig_trend.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['trend'], name='Tendencia', line=dict(color='green')))
+                        fig_trend.update_layout(title="Componente de Tendencia", xaxis_title="Fecha", yaxis_title="Trend")
+                        st.plotly_chart(fig_trend)
+
+                        if 'yearly' in predicciones.columns:
+                            fig_seasonal = go.Figure()
+                            fig_seasonal.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yearly'], name='Estacionalidad Anual', line=dict(color='orange')))
+                            fig_seasonal.update_layout(title="Componente Estacional Anual", xaxis_title="Fecha", yaxis_title="Seasonal")
+                            st.plotly_chart(fig_seasonal)
+
+                        
                         #df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
                         #resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
                         #resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
