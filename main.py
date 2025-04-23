@@ -2702,74 +2702,164 @@ try:
     #modelo.plot(predicciones)
 
 
+#    from prophet import Prophet
+#    import matplotlib.pyplot as plt
+#    import seaborn as sns
+#    # Obtener lista de estaciones con datos
+#    estaciones_disponibles = df_consolidado_imputado['Clave'].unique().tolist()
+#    variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
+
+#    # Menús interactivos
+#    st.subheader("Predicción con Prophet")
+#    estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
+#    variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
+
+#    # Filtrar la estación
+#    df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
+
+#    # Verificar columna 'Fecha' y variable seleccionada
+#    if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
+#        st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
+#    else:
+#        # Preparar datos para Prophet
+#        df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
+
+#        # Eliminar valores faltantes y fechas duplicadas
+#        df_estacion = df_estacion.dropna(subset=['ds', 'y'])
+#        df_estacion = df_estacion.drop_duplicates(subset=['ds'])
+
+#        if df_estacion['y'].notna().sum() < 2:
+#            st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
+#        else:
+#            with st.spinner("Entrenando modelo Prophet..."):
+#                try:
+#                    modelo = Prophet()
+#                    modelo.fit(df_estacion)#
+#
+#                    #modelo = Prophet()
+#                    #modelo.fit(df_estacion)
+
+#                    # Generar predicción para 365 días
+#                    futuro = modelo.make_future_dataframe(periods=365)
+#                    predicciones = modelo.predict(futuro)
+
+#                    # Mostrar predicción completa
+#                    fig_pred = modelo.plot(predicciones)
+#                    st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
+#                    st.pyplot(fig_pred)
+
+#                    # Mostrar componentes individuales
+#                    fig_componentes = modelo.plot_components(predicciones)
+#                    st.subheader("Componentes de la predicción")
+#                    st.pyplot(fig_componentes)
+
+#                    # Resumen por década
+#                    df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
+#                    resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
+#                    resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
+
+#                    # Gráfico de resumen por década
+#                    st.subheader("Resumen por Década")
+#                    fig_bar, ax = plt.subplots(figsize=(10, 5))
+#                    sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
+#                    ax.set_title('Temperatura Media Promedio por Década')
+#                    ax.set_ylabel('°C')
+#                    ax.grid(axis='y')
+
+#                    st.pyplot(fig_bar)
+
+
+
+
     from prophet import Prophet
     import matplotlib.pyplot as plt
     import seaborn as sns
-    # Obtener lista de estaciones con datos
-    estaciones_disponibles = df_consolidado_imputado['Clave'].unique().tolist()
-    variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
 
-    # Menús interactivos
-    st.subheader("Predicción con Prophet")
-    estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
-    variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
+    # Crear el agrupamiento de estaciones según la cantidad de registros por estación
+    agrupamiento_estaciones = {
+        "50-100%": [],
+        "25-50%": [],
+        "0-25%": []
+    }
 
-    # Filtrar la estación
-    df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
+    # Calcular el máximo de registros por estación
+    if not df_consolidado_imputado.empty:
+        max_registros = df_consolidado_imputado['Clave'].value_counts().max()
 
-    # Verificar columna 'Fecha' y variable seleccionada
-    if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
-        st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
+        # Agrupar estaciones según proporción de datos
+        for clave, count in df_consolidado_imputado['Clave'].value_counts().items():
+            if count >= 0.5 * max_registros:
+                agrupamiento_estaciones["50-100%"].append(clave)
+            elif 0.25 * max_registros <= count < 0.5 * max_registros:
+                agrupamiento_estaciones["25-50%"].append(clave)
+            else:
+                agrupamiento_estaciones["0-25%"].append(clave)
+
+        # Menú para seleccionar grupo
+        grupo_filtrado = st.selectbox("Selecciona el grupo de estaciones con más datos", ["50-100%", "25-50%"])
+        estaciones_disponibles = agrupamiento_estaciones[grupo_filtrado]
     else:
-        # Preparar datos para Prophet
-        df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
+        st.warning("No hay datos suficientes para realizar la agrupación.")
+        estaciones_disponibles = []
 
-        # Eliminar valores faltantes y fechas duplicadas
-        df_estacion = df_estacion.dropna(subset=['ds', 'y'])
-        df_estacion = df_estacion.drop_duplicates(subset=['ds'])
+    # Si hay estaciones disponibles, continuar con Prophet
+    if estaciones_disponibles:
+        variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
 
-        if df_estacion['y'].notna().sum() < 2:
-            st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
+        st.subheader("Predicción con Prophet")
+        estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
+        variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
+
+        # Filtrar la estación
+        df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
+
+        if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
+            st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
         else:
-            with st.spinner("Entrenando modelo Prophet..."):
-                try:
-                    modelo = Prophet()
-                    modelo.fit(df_estacion)
+            # Preparar datos para Prophet
+            df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
+            df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
 
-                    #modelo = Prophet()
-                    #modelo.fit(df_estacion)
+            if df_estacion['y'].notna().sum() < 2:
+                st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
+            else:
+                with st.spinner("Entrenando modelo Prophet..."):
+                    try:
+                        modelo = Prophet()
+                        modelo.fit(df_estacion)
 
-                    # Generar predicción para 365 días
-                    futuro = modelo.make_future_dataframe(periods=365)
-                    predicciones = modelo.predict(futuro)
+                        futuro = modelo.make_future_dataframe(periods=365)
+                        predicciones = modelo.predict(futuro)
 
-                    # Mostrar predicción completa
-                    fig_pred = modelo.plot(predicciones)
-                    st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
-                    st.pyplot(fig_pred)
+                        fig_pred = modelo.plot(predicciones)
+                        st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
+                        st.pyplot(fig_pred)
 
-                    # Mostrar componentes individuales
-                    fig_componentes = modelo.plot_components(predicciones)
-                    st.subheader("Componentes de la predicción")
-                    st.pyplot(fig_componentes)
+                        fig_componentes = modelo.plot_components(predicciones)
+                        st.subheader("Componentes de la predicción")
+                        st.pyplot(fig_componentes)
 
-                    # Resumen por década
-                    df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
-                    resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
-                    resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
+                        # Resumen por década
+                        df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
+                        resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
+                        resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
 
-                    # Gráfico de resumen por década
-                    st.subheader("Resumen por Década")
-                    fig_bar, ax = plt.subplots(figsize=(10, 5))
-                    sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
-                    ax.set_title('Temperatura Media Promedio por Década')
-                    ax.set_ylabel('°C')
-                    ax.grid(axis='y')
+                        st.subheader("Resumen por Década")
+                        fig_bar, ax = plt.subplots(figsize=(10, 5))
+                        sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
+                        ax.set_title('Promedio por Década')
+                        ax.set_ylabel('°C')
+                        ax.grid(axis='y')
+                        st.pyplot(fig_bar)
 
-                    st.pyplot(fig_bar)
+                    except Exception as e:
+                        st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
+    else:
+        st.warning("No hay estaciones suficientes en este grupo.")
 
-                except Exception as e:
-                    st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
+                
+#                except Exception as e:
+#                    st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
 
 
 
