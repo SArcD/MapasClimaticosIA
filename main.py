@@ -2779,13 +2779,13 @@ try:
                         futuro = modelo.make_future_dataframe(periods=365)
                         predicciones = modelo.predict(futuro)
 
-                        #fig_pred = modelo.plot(predicciones)
-                        #st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
-                        #st.pyplot(fig_pred)
+                        fig_pred = modelo.plot(predicciones)
+                        st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
+                        st.pyplot(fig_pred)
 
-                        #fig_componentes = modelo.plot_components(predicciones)
-                        #st.subheader("Componentes de la predicción")
-                        #st.pyplot(fig_componentes)
+                        fig_componentes = modelo.plot_components(predicciones)
+                        st.subheader("Componentes de la predicción")
+                        st.pyplot(fig_componentes)
 
                         import plotly.graph_objects as go
 
