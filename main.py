@@ -2704,7 +2704,7 @@ try:
 
     from prophet import Prophet
     import matplotlib.pyplot as plt
-
+    import seaborn as sns
     # Obtener lista de estaciones con datos
     estaciones_disponibles = df_consolidado_imputado['Clave'].unique().tolist()
     variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
