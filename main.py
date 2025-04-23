@@ -2597,8 +2597,49 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                             'Mes': int(row['Mes']),
                             'Fecha': pd.to_datetime(fecha_str)
                         }
+
                         # Agregar valores promedio del resto de columnas
                         registro.update(row.drop(['Año', 'Mes']).to_dict())
+
+                        # Cálculo de radiación solar promedio y corregida
+                        if not pd.isnull(latitud) and not pd.isnull(elevacion):
+                            rad_prom = calcular_radiacion_mensual(latitud, elevacion, int(row['Mes']))
+                            rad_corr = rad_prom * (1 + k * elevacion)
+                        else:
+                            rad_prom = np.nan
+                            rad_corr = np.nan
+
+                        registro["Radiación Solar Promedio (W/m²)"] = rad_prom
+                        registro["Radiación Solar Corregida (W/m²)"] = rad_corr
+
+                        # Agregar valores promedio del resto de columnas
+                        #registro.update(row.drop(['Año', 'Mes']).to_dict())
+                        # --- Cálculo de radiación solar ---
+                        S0 = 1361  # W/m²
+                        Ta = 0.75
+                        k = 0.12  # aumento por km de altitud
+
+                        def calcular_radiacion_diaria(lat, alt, dia_juliano):
+                        decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
+                        decl_rad = np.radians(decl)
+                        lat_rad = np.radians(lat)
+                        h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
+                            return S0 * Ta * (1 + k * alt) * (
+                                np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
+                                h_s * np.sin(lat_rad) * np.sin(decl_rad)
+                            )
+
+                        def calcular_radiacion_mensual(lat, alt, mes):
+                            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+                            inicio = sum(dias_por_mes[:mes-1]) + 1
+                            dias = dias_por_mes[mes-1]
+                            total = 0
+                            for d in range(inicio, inicio + dias):
+                                total += max(0, calcular_radiacion_diaria(lat, alt, d))
+                            return total / dias
+
+
+                        
                         datos_consolidados.append(registro)
 
                 except Exception as e:
