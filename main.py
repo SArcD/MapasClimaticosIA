@@ -2599,6 +2599,8 @@ try:
         axis=1
     )
 
+    df_consolidado_imputado
+    
     # Mostrar resultados
     st.subheader("Valores Faltantes Después de la Imputación Geoespacial")
     faltantes_finales = df_consolidado_imputado.isnull().sum()
