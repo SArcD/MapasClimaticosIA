@@ -2812,7 +2812,7 @@ try:
 #    else:
 #        st.warning("No hay estaciones suficientes en este grupo.")
 
-    df_consolidado_imputado     
+    #df_consolidado_imputado     
     import os
     import pandas as pd
     import numpy as np
@@ -2846,7 +2846,7 @@ try:
             lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
             axis=1
         )
-
+        df_consolidado_imputado
         df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
         st.success("Datos procesados y guardados.")
 
