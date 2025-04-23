@@ -2620,10 +2620,10 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
                         k = 0.12  # aumento por km de altitud
 
                         def calcular_radiacion_diaria(lat, alt, dia_juliano):
-                        decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
-                        decl_rad = np.radians(decl)
-                        lat_rad = np.radians(lat)
-                        h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
+                            decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
+                            decl_rad = np.radians(decl)
+                            lat_rad = np.radians(lat)
+                            h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
                             return S0 * Ta * (1 + k * alt) * (
                                 np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
                                 h_s * np.sin(lat_rad) * np.sin(decl_rad)
