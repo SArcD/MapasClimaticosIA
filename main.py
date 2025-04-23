@@ -2736,14 +2736,37 @@ try:
                     modelo = Prophet()
                     modelo.fit(df_estacion)
 
+                    #modelo = Prophet()
+                    #modelo.fit(df_estacion)
+
                     # Generar predicción para 365 días
                     futuro = modelo.make_future_dataframe(periods=365)
                     predicciones = modelo.predict(futuro)
 
-                    # Mostrar resultado
-                    fig = modelo.plot(predicciones)
+                    # Mostrar predicción completa
+                    fig_pred = modelo.plot(predicciones)
                     st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
-                    st.pyplot(fig)
+                    st.pyplot(fig_pred)
+
+                    # Mostrar componentes individuales
+                    fig_componentes = modelo.plot_components(predicciones)
+                    st.subheader("Componentes de la predicción")
+                    st.pyplot(fig_componentes)
+
+                    # Resumen por década
+                    df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
+                    resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
+                    resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
+
+                    # Gráfico de resumen por década
+                    st.subheader("Resumen por Década")
+                    fig_bar, ax = plt.subplots(figsize=(10, 5))
+                    sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
+                    ax.set_title('Temperatura Media Promedio por Década')
+                    ax.set_ylabel('°C')
+                    ax.grid(axis='y')
+
+                    st.pyplot(fig_bar)
 
                 except Exception as e:
                     st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
