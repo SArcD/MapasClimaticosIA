@@ -2538,6 +2538,7 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
 #    return pd.DataFrame(datos_consolidados)
 
+@st.cache_data
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     Consolida los datos de todas las estaciones en un solo DataFrame,
@@ -2612,7 +2613,7 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
 
 
-#@st.cache_data
+@st.cache_data
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
     """
     Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
