@@ -2895,6 +2895,52 @@ try:
                         )
                         st.plotly_chart(fig_bar)
 
+                        import pandas as pd
+                        import numpy as np
+                        import matplotlib.pyplot as plt
+                        from statsmodels.tsa.seasonal import STL
+                        from scipy.fft import fft, fftfreq
+
+                        # Simular una serie temporal para radiación solar anual
+                        # Este bloque asumirá que tienes un DataFrame como df_radiacion_anual con columnas: 'Año' y 'Radiación Promedio Anual (W/m²)'
+
+                        # Función para aplicar STL y análisis de Fourier
+                        def descomposicion_y_fft(df, columna_valor='Radiación Promedio Anual (W/m²)'):
+                            # Asegurar orden temporal
+                            df = df.sort_values('Año').reset_index(drop=True)
+
+                            # Crear una serie temporal con índice de años
+                            serie = pd.Series(df[columna_valor].values, index=pd.PeriodIndex(df['Año'], freq='Y'))
+
+                            # Aplicar STL (descomposición robusta)
+                            stl = STL(serie, seasonal=7, robust=True)
+                            resultado = stl.fit()
+
+                            # FFT sobre la tendencia (podría hacerse sobre la serie completa también)
+                            tendencia = resultado.trend.dropna().values
+                            n = len(tendencia)
+                            fft_vals = np.abs(fft(tendencia - np.mean(tendencia)))
+                            fft_freqs = fftfreq(n, d=1)  # d=1 año entre puntos
+
+                            # Filtrar solo frecuencias positivas
+                            mask = fft_freqs > 0
+                            frecuencias = fft_freqs[mask]
+                            amplitudes = fft_vals[mask]
+    
+                            # Convertir a periodo (años) para buscar cerca de 11 años
+                            periodos = 1 / frecuencias
+
+                            # Crear DataFrame de espectro
+                            espectro = pd.DataFrame({'Periodo (años)': periodos, 'Amplitud': amplitudes})
+
+                            return resultado, espectro
+
+                        # Este bloque solo define la función. Para usarla:
+                        # resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
+                        # Y luego puedes graficar tendencia o espectro si gustas.
+                        espectro
+
+
 
                     
 
