@@ -2883,7 +2883,7 @@ try:
                             x='Década',
                             y=f'Promedio de {variable_seleccionada} (°C)',
                             color=f'Promedio de {variable_seleccionada} (°C)',
-                            color_continuous_scale='RdBu_r',  # Alternativas: 'RdYlBu_r', 'Blues', 'Viridis'
+                            color_continuous_scale='RdYlBu_r',  # Alternativas: 'RdYlBu_r', 'Blues', 'Viridis'
                             title=f'{variable_seleccionada} Promedio por Década',
                             labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
                             height=450
