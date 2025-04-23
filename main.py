@@ -2471,18 +2471,77 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
     return coordenadas_nombres
 
 #@st.cache_data
+#def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
+#    """
+#    Consolida los datos de todas las estaciones en un solo DataFrame.
+
+#    Args:
+#        claves (list): Lista de claves de estaciones.
+#        output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
+#        elevation_data (array): Datos de elevación para corrección.
+#        tile_size (tuple): Tamaño de la grilla de elevación.
+
+#    Returns:
+#        pd.DataFrame: DataFrame consolidado.
+#    """
+#    datos_consolidados = []
+
+#    for output_dir in output_dirs:
+#        for clave in claves:
+#            archivo = os.path.join(output_dir, f"{clave}_df.csv")
+#            if os.path.exists(archivo):
+#                try:
+#                    # Leer datos de la estación
+#                    df = pd.read_csv(archivo)
+#                    #df = pd.read_csv(archivo)
+#                    df.columns = df.columns.str.strip()
+
+#                    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+#                    df['Año'] = df['Fecha'].dt.year
+#                    df['Mes'] = df['Fecha'].dt.month
+
+#                    # Limpiar columnas numéricas
+#                    for col in df.columns:
+#                        if col not in ['Fecha', 'Latitud', 'Longitud']:
+#                            df[col] = pd.to_numeric(
+#                                df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
+#                                errors='coerce'
+                            )
+
+#                    # Calcular promedios anuales y mensuales
+#                    promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
+
+#                    # Agregar información geoespacial
+#                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
+#                        latitud = round(df['Latitud'].iloc[0], 6)
+#                        longitud = round(df['Longitud'].iloc[0], 6)
+#                        elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
+#                    else:
+#                        latitud = np.nan
+#                        longitud = np.nan
+#                        elevacion = np.nan
+
+#                    # Crear registro consolidado
+#                    for _, row in promedios.iterrows():
+#                        registro = {
+#                            'Clave': clave,
+#                            'Latitud': latitud,
+#                            'Longitud': longitud,
+#                            'Elevación (km)': elevacion,
+#                            'Año': row['Año'],
+#                            'Mes': row['Mes']
+#                        }
+#                        registro.update(row.drop(['Año', 'Mes']).to_dict())
+#                        datos_consolidados.append(registro)
+#                except Exception as e:
+#                    st.warning(f"Error al procesar la estación {clave}: {e}")
+
+#    return pd.DataFrame(datos_consolidados)
+
 def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
-    Consolida los datos de todas las estaciones en un solo DataFrame.
-
-    Args:
-        claves (list): Lista de claves de estaciones.
-        output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
-        elevation_data (array): Datos de elevación para corrección.
-        tile_size (tuple): Tamaño de la grilla de elevación.
-
-    Returns:
-        pd.DataFrame: DataFrame consolidado.
+    Consolida los datos de todas las estaciones en un solo DataFrame,
+    conservando claves como texto y ordenando por Clave, Año y Mes.
     """
     datos_consolidados = []
 
@@ -2491,52 +2550,67 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
             archivo = os.path.join(output_dir, f"{clave}_df.csv")
             if os.path.exists(archivo):
                 try:
-                    # Leer datos de la estación
-                    df = pd.read_csv(archivo)
-                    #df = pd.read_csv(archivo)
+                    # Leer CSV forzando la clave como texto
+                    df = pd.read_csv(archivo, dtype={'Clave': str})
                     df.columns = df.columns.str.strip()
 
+                    # Forzar asignación de clave (por si no viene en CSV)
+                    df['Clave'] = str(clave)
+
+                    # Convertir fechas y extraer año y mes
                     df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
                     df['Año'] = df['Fecha'].dt.year
                     df['Mes'] = df['Fecha'].dt.month
 
                     # Limpiar columnas numéricas
                     for col in df.columns:
-                        if col not in ['Fecha', 'Latitud', 'Longitud']:
+                        if col not in ['Clave', 'Fecha', 'Latitud', 'Longitud']:
                             df[col] = pd.to_numeric(
                                 df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
                                 errors='coerce'
                             )
 
-                    # Calcular promedios anuales y mensuales
-                    promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
+                    # Evitar que la clave entre al cálculo del promedio
+                    df_prom = df.drop(columns=['Clave', 'Fecha'], errors='ignore')
 
-                    # Agregar información geoespacial
+                    # Calcular promedios por año y mes
+                    promedios = df_prom.groupby(['Año', 'Mes']).mean().reset_index()
+
+                    # Obtener coordenadas y elevación
                     if 'Latitud' in df.columns and 'Longitud' in df.columns:
                         latitud = round(df['Latitud'].iloc[0], 6)
                         longitud = round(df['Longitud'].iloc[0], 6)
                         elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
                     else:
-                        latitud = np.nan
-                        longitud = np.nan
-                        elevacion = np.nan
+                        latitud, longitud, elevacion = np.nan, np.nan, np.nan
 
-                    # Crear registro consolidado
+                    # Generar registros
                     for _, row in promedios.iterrows():
+                        fecha_str = f"{int(row['Año'])}-{int(row['Mes']):02d}-15"
                         registro = {
-                            'Clave': clave,
+                            'Clave': str(clave),
                             'Latitud': latitud,
                             'Longitud': longitud,
                             'Elevación (km)': elevacion,
-                            'Año': row['Año'],
-                            'Mes': row['Mes']
+                            'Año': int(row['Año']),
+                            'Mes': int(row['Mes']),
+                            'Fecha': pd.to_datetime(fecha_str)
                         }
+                        # Agregar valores promedio del resto de columnas
                         registro.update(row.drop(['Año', 'Mes']).to_dict())
                         datos_consolidados.append(registro)
+
                 except Exception as e:
                     st.warning(f"Error al procesar la estación {clave}: {e}")
 
-    return pd.DataFrame(datos_consolidados)
+    # Convertir a DataFrame y ordenar por Clave, Año, Mes
+    df_consolidado = pd.DataFrame(datos_consolidados)
+    if not df_consolidado.empty:
+        df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
+
+    return df_consolidado
+
+
 
 #@st.cache_data
 def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
