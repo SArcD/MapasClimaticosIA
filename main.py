@@ -2546,33 +2546,35 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
     """
     datos_consolidados = []
 
+    S0 = 1361  # W/m²
+    Ta = 0.75
+    k = 0.12  # aumento por km de altitud
+
+    def calcular_radiacion_diaria(lat, alt, dia_juliano):
+        decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
+        decl_rad = np.radians(decl)
+        lat_rad = np.radians(lat)
+        h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
+        return S0 * Ta * (1 + k * alt) * (
+            np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
+            h_s * np.sin(lat_rad) * np.sin(decl_rad)
+                            )
+
+    def calcular_radiacion_mensual(lat, alt, mes):
+        dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        inicio = sum(dias_por_mes[:mes-1]) + 1
+        dias = dias_por_mes[mes-1]
+        total = 0
+        for d in range(inicio, inicio + dias):
+            total += max(0, calcular_radiacion_diaria(lat, alt, d))
+        return total / dias
+
+    
     for output_dir in output_dirs:
         for clave in claves:
             archivo = os.path.join(output_dir, f"{clave}_df.csv")
             if os.path.exists(archivo):
                 try:
-                        S0 = 1361  # W/m²
-                        Ta = 0.75
-                        k = 0.12  # aumento por km de altitud
-
-                        def calcular_radiacion_diaria(lat, alt, dia_juliano):
-                            decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
-                            decl_rad = np.radians(decl)
-                            lat_rad = np.radians(lat)
-                            h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
-                            return S0 * Ta * (1 + k * alt) * (
-                                np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
-                                h_s * np.sin(lat_rad) * np.sin(decl_rad)
-                            )
-
-                        def calcular_radiacion_mensual(lat, alt, mes):
-                            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-                            inicio = sum(dias_por_mes[:mes-1]) + 1
-                            dias = dias_por_mes[mes-1]
-                            total = 0
-                            for d in range(inicio, inicio + dias):
-                                total += max(0, calcular_radiacion_diaria(lat, alt, d))
-                            return total / dias
 
                     # Leer CSV forzando la clave como texto
                     df = pd.read_csv(archivo, dtype={'Clave': str})
