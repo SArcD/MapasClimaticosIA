@@ -2812,7 +2812,7 @@ try:
 #    else:
 #        st.warning("No hay estaciones suficientes en este grupo.")
 
-                
+    df_consolidado_imputado     
     import os
     import pandas as pd
     import numpy as np
