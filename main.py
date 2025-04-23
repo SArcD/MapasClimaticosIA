@@ -2787,17 +2787,41 @@ try:
                         st.subheader("Componentes de la predicción")
                         st.pyplot(fig_componentes)
 
+                        #df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
+                        #resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
+                        #resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
+
+                        #st.subheader("Resumen por Década")
+                        #fig_bar, ax = plt.subplots(figsize=(10, 5))
+                        #sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
+                        #ax.set_title('Promedio por Década')
+                        #ax.set_ylabel('°C')
+                        #ax.grid(axis='y')
+                        #st.pyplot(fig_bar)
+
+                        import plotly.express as px
+
+                        # --- Resumen por década con Plotly ---
                         df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
                         resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
                         resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
 
                         st.subheader("Resumen por Década")
-                        fig_bar, ax = plt.subplots(figsize=(10, 5))
-                        sns.barplot(data=resumen_decadas, x='Década', y=f'Promedio de {variable_seleccionada} (°C)', palette='coolwarm', ax=ax)
-                        ax.set_title('Promedio por Década')
-                        ax.set_ylabel('°C')
-                        ax.grid(axis='y')
-                        st.pyplot(fig_bar)
+
+                        fig_bar = px.bar(
+                            resumen_decadas,
+                            x='Década',
+                            y=f'Promedio de {variable_seleccionada} (°C)',
+                            color=f'Promedio de {variable_seleccionada} (°C)',
+                            color_continuous_scale='thermal',
+                            title='Promedio por Década',
+                            labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
+                            height=450
+                        )
+                        fig_bar.update_layout(xaxis_title="Década", yaxis_title="°C")
+                        st.plotly_chart(fig_bar)
+
+                    
 
                     except Exception as e:
                         st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
