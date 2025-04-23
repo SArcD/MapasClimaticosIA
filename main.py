@@ -2506,7 +2506,7 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 #                            df[col] = pd.to_numeric(
 #                                df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
 #                                errors='coerce'
-                            )
+#                            )
 
 #                    # Calcular promedios anuales y mensuales
 #                    promedios = df.groupby(['Año', 'Mes']).mean().reset_index()
