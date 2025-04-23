@@ -2807,11 +2807,35 @@ try:
                         fig_trend.update_layout(title="Componente de Tendencia", xaxis_title="Fecha", yaxis_title="Trend")
                         st.plotly_chart(fig_trend)
 
-                        if 'yearly' in predicciones.columns:
-                            fig_seasonal = go.Figure()
-                            fig_seasonal.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yearly'], name='Estacionalidad Anual', line=dict(color='orange')))
-                            fig_seasonal.update_layout(title="Componente Estacional Anual", xaxis_title="Fecha", yaxis_title="Seasonal")
-                            st.plotly_chart(fig_seasonal)
+                        #if 'yearly' in predicciones.columns:
+                        #    fig_seasonal = go.Figure()
+                        #    fig_seasonal.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yearly'], name='Estacionalidad Anual', line=dict(color='orange')))
+                        #    fig_seasonal.update_layout(title="Componente Estacional Anual", xaxis_title="Fecha", yaxis_title="Seasonal")
+                        #    st.plotly_chart(fig_seasonal)
+                        import plotly.express as px
+                        import pandas as pd
+
+                        # Extraer la componente estacional yearly
+                        componente_yearly = modelo.predict_seasonal_components(futuro)
+
+                        # Asegurar que los datos están disponibles
+                        if 'yearly' in componente_yearly.columns:
+                            # Agregar columna de día del año
+                            componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
+
+                            # Agrupar por día del año y promediar para suavizar la gráfica
+                            promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
+
+                            # Graficar en Plotly
+                            fig_yearly = px.line(
+                                promedio_por_dia,
+                                x='day_of_year',
+                                y='yearly',
+                                title="Componente Estacional Anual (Promedio por Día del Año)",
+                                labels={'day_of_year': 'Día del Año', 'yearly': 'Efecto Estacional'}
+                            )
+                            fig_yearly.update_traces(line=dict(color='orange'))
+                            st.plotly_chart(fig_yearly)
 
                         
                         #df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
