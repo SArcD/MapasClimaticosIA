@@ -2768,7 +2768,7 @@ try:
             df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
             df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
             # Forzar frecuencia mensual si hay al menos 2 datos
-            df_estacion = df_estacion.set_index('ds').asfreq('MS').reset_index()
+            #df_estacion = df_estacion.set_index('ds').asfreq('MS').reset_index()
 
 
             if df_estacion['y'].notna().sum() < 2:
@@ -2938,10 +2938,7 @@ try:
 
                             return resultado, espectro
 
-                        # Este bloque solo define la función. Para usarla:
-                        # resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
-                        # Y luego puedes graficar tendencia o espectro si gustas.
-                        # Agrupar para obtener radiación promedio anual por estación seleccionada
+
                         #estacion_objetivo = st.selectbox("Selecciona una estación para análisis FFT", df_consolidado_imputado['Clave'].unique())
                         estacion_objetivo = estacion_seleccionada
                         df_radiacion_anual = (
