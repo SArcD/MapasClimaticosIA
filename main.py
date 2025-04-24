@@ -2970,8 +2970,8 @@ try:
                         ax1.set_title("Tendencia (STL)")
                         ax1.set_xlabel("Año")
                         ax1.set_ylabel("W/m²")
-                        ax1.set_ylim(df['Radiación Promedio Anual (W/m²)'].quantile(0.05), 
-                        df['Radiación Promedio Anual (W/m²)'].quantile(0.95))
+                        ax1.set_ylim(df_radiacion_anual['Radiación Promedio Anual (W/m²)'].quantile(0.05), 
+                        df_radiacion_anual['Radiación Promedio Anual (W/m²)'].quantile(0.95))
 
                         st.pyplot(fig_tendencia)
 
