@@ -24,7 +24,7 @@ if seccion == "Descripción":
     st.title("Descripción general")
     st.write("Aquí puedes poner una introducción, descripción del proyecto o del dataset.")
 
-elif seccion == "Mapas Climatológicos"
+elif seccion == "Mapas Climatológicos":
 
 
 # URL base del repositorio en GitHub
