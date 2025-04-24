@@ -2440,45 +2440,47 @@ elif seccion == "Registro de datos históricos":
 
 ##########################################
 
-import os
-import pandas as pd
-import numpy as np
-from scipy.spatial import cKDTree
-import streamlit as st
-
-@st.cache_data
-def recolectar_coordenadas_nombres(claves, output_dirs):
-    """
-    Recolecta los nombres y coordenadas geográficas de las estaciones.
-
-    Args:
-        claves (list): Lista de claves de las estaciones.
-        output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
-
-    Returns:
-        dict: Diccionario con coordenadas (latitud, longitud) como claves y nombres de estaciones como valores.
-    """
-    coordenadas_nombres = {}
-
-    for output_dir in output_dirs:
-        for clave in claves:
-            archivo = os.path.join(output_dir, f"{clave}_df.csv")
-            if os.path.exists(archivo):
-                try:
-                    df = pd.read_csv(archivo)
-                    #df = pd.read_csv(archivo)
-                    df.columns = df.columns.str.strip()
+elif seccion == "Análisis con Prophet"
 
 
-                    # Verificar si las columnas de coordenadas están presentes
-                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
-                        latitud = round(df['Latitud'].iloc[0], 6)
-                        longitud = round(df['Longitud'].iloc[0], 6)
-                        coordenadas_nombres[(latitud, longitud)] = clave
-                except Exception as e:
-                    st.warning(f"Error al procesar la estación {clave} para recolección de coordenadas: {e}")
+    import os
+    import pandas as pd
+    import numpy as np
+    from scipy.spatial import cKDTree
+    import streamlit as st
 
-    return coordenadas_nombres
+    @st.cache_data
+    def recolectar_coordenadas_nombres(claves, output_dirs):
+        """
+        Recolecta los nombres y coordenadas geográficas de las estaciones.
+        Args:
+            claves (list): Lista de claves de las estaciones.
+            output_dirs (list): Lista de directorios donde se encuentran los archivos CSV.
+
+        Returns:
+            dict: Diccionario con coordenadas (latitud, longitud) como claves y nombres de estaciones como valores.
+        """
+        coordenadas_nombres = {}
+
+        for output_dir in output_dirs:
+            for clave in claves:
+                archivo = os.path.join(output_dir, f"{clave}_df.csv")
+                if os.path.exists(archivo):
+                    try:
+                        df = pd.read_csv(archivo)
+                        #df = pd.read_csv(archivo)
+                        df.columns = df.columns.str.strip()
+
+
+                        # Verificar si las columnas de coordenadas están presentes
+                        if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                            latitud = round(df['Latitud'].iloc[0], 6)
+                            longitud = round(df['Longitud'].iloc[0], 6)
+                            coordenadas_nombres[(latitud, longitud)] = clave
+                    except Exception as e:
+                        st.warning(f"Error al procesar la estación {clave} para recolección de coordenadas: {e}")
+
+        return coordenadas_nombres
 
 #@st.cache_data
 #def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
@@ -2548,104 +2550,103 @@ def recolectar_coordenadas_nombres(claves, output_dirs):
 
 #    return pd.DataFrame(datos_consolidados)
 
-@st.cache_data
-def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
-    """
-    Consolida los datos de todas las estaciones en un solo DataFrame,
-    conservando claves como texto y ordenando por Clave, Año y Mes.
-    """
-    datos_consolidados = []
+    @st.cache_data
+    def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
+        """
+        Consolida los datos de todas las estaciones en un solo DataFrame,
+        conservando claves como texto y ordenando por Clave, Año y Mes.
+        """
+        datos_consolidados = []
 
-    S0 = 1361  # W/m²
-    Ta = 0.75
-    k = 0.12  # aumento por km de altitud
+        S0 = 1361  # W/m²
+        Ta = 0.75
+        k = 0.12  # aumento por km de altitud
 
-    def calcular_radiacion_diaria(lat, alt, dia_juliano):
-        decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
-        decl_rad = np.radians(decl)
-        lat_rad = np.radians(lat)
-        h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
-        return S0 * Ta * (1 + k * alt) * (
-            np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
-            h_s * np.sin(lat_rad) * np.sin(decl_rad)
+        def calcular_radiacion_diaria(lat, alt, dia_juliano):
+            decl = 23.45 * np.sin(np.radians((360 / 365) * (dia_juliano - 81)))
+            decl_rad = np.radians(decl)
+            lat_rad = np.radians(lat)
+            h_s = np.arccos(-np.tan(lat_rad) * np.tan(decl_rad))
+            return S0 * Ta * (1 + k * alt) * (
+                np.cos(lat_rad) * np.cos(decl_rad) * np.sin(h_s) +
+                h_s * np.sin(lat_rad) * np.sin(decl_rad)
                             )
 
-    def calcular_radiacion_mensual(lat, alt, mes):
-        dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-        inicio = sum(dias_por_mes[:mes-1]) + 1
-        dias = dias_por_mes[mes-1]
-        total = 0
-        for d in range(inicio, inicio + dias):
-            total += max(0, calcular_radiacion_diaria(lat, alt, d))
-        return total / dias
-
+        def calcular_radiacion_mensual(lat, alt, mes):
+            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+            inicio = sum(dias_por_mes[:mes-1]) + 1
+            dias = dias_por_mes[mes-1]
+            total = 0
+            for d in range(inicio, inicio + dias):
+                total += max(0, calcular_radiacion_diaria(lat, alt, d))
+            return total / dias
     
-    for output_dir in output_dirs:
-        for clave in claves:
-            archivo = os.path.join(output_dir, f"{clave}_df.csv")
-            if os.path.exists(archivo):
-                try:
+        for output_dir in output_dirs:
+            for clave in claves:
+                archivo = os.path.join(output_dir, f"{clave}_df.csv")
+                if os.path.exists(archivo):
+                    try:
 
-                    # Leer CSV forzando la clave como texto
-                    df = pd.read_csv(archivo, dtype={'Clave': str})
-                    df.columns = df.columns.str.strip()
+                        # Leer CSV forzando la clave como texto
+                        df = pd.read_csv(archivo, dtype={'Clave': str})
+                        df.columns = df.columns.str.strip()
 
-                    # Forzar asignación de clave (por si no viene en CSV)
-                    df['Clave'] = str(clave)
+                        # Forzar asignación de clave (por si no viene en CSV)
+                        df['Clave'] = str(clave)
 
-                    # Convertir fechas y extraer año y mes
-                    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
-                    df['Año'] = df['Fecha'].dt.year
-                    df['Mes'] = df['Fecha'].dt.month
+                        # Convertir fechas y extraer año y mes
+                        df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+                        df['Año'] = df['Fecha'].dt.year
+                        df['Mes'] = df['Fecha'].dt.month
 
-                    # Limpiar columnas numéricas
-                    for col in df.columns:
-                        if col not in ['Clave', 'Fecha', 'Latitud', 'Longitud']:
-                            df[col] = pd.to_numeric(
-                                df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
-                                errors='coerce'
-                            )
+                        # Limpiar columnas numéricas
+                        for col in df.columns:
+                            if col not in ['Clave', 'Fecha', 'Latitud', 'Longitud']:
+                                df[col] = pd.to_numeric(
+                                    df[col].astype(str).str.replace('[^0-9.-]', '', regex=True),
+                                    errors='coerce'
+                                )
 
-                    # Evitar que la clave entre al cálculo del promedio
-                    df_prom = df.drop(columns=['Clave', 'Fecha'], errors='ignore')
+                        # Evitar que la clave entre al cálculo del promedio
+                        df_prom = df.drop(columns=['Clave', 'Fecha'], errors='ignore')
 
-                    # Calcular promedios por año y mes
-                    promedios = df_prom.groupby(['Año', 'Mes']).mean().reset_index()
+                        # Calcular promedios por año y mes
+                        promedios = df_prom.groupby(['Año', 'Mes']).mean().reset_index()
 
-                    # Obtener coordenadas y elevación
-                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
-                        latitud = round(df['Latitud'].iloc[0], 6)
-                        longitud = round(df['Longitud'].iloc[0], 6)
-                        elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
-                    else:
-                        latitud, longitud, elevacion = np.nan, np.nan, np.nan
-
-                    # Generar registros
-                    for _, row in promedios.iterrows():
-                        fecha_str = f"{int(row['Año'])}-{int(row['Mes']):02d}-15"
-                        registro = {
-                            'Clave': str(clave),
-                            'Latitud': latitud,
-                            'Longitud': longitud,
-                            'Elevación (km)': elevacion,
-                            'Año': int(row['Año']),
-                            'Mes': int(row['Mes']),
-                            'Fecha': pd.to_datetime(fecha_str)
-                        }
-
-                        # Agregar valores promedio del resto de columnas
-                        registro.update(row.drop(['Año', 'Mes']).to_dict())
-
-                        # Cálculo de radiación solar promedio y corregida
-                        if not pd.isnull(latitud) and not pd.isnull(elevacion):
-                            rad_prom = calcular_radiacion_mensual(latitud, elevacion, int(row['Mes']))
-                            rad_corr = rad_prom * (1 + k * elevacion)
+                        # Obtener coordenadas y elevación
+                        if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                            latitud = round(df['Latitud'].iloc[0], 6)
+                            longitud = round(df['Longitud'].iloc[0], 6)
+                            elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
                         else:
-                            rad_prom = np.nan
-                            rad_corr = np.nan
+                            latitud, longitud, elevacion = np.nan, np.nan, np.nan
 
-                        registro["Radiación Solar Promedio (W/m²)"] = rad_prom
-                        registro["Radiación Solar Corregida (W/m²)"] = rad_corr
+                        # Generar registros
+                        for _, row in promedios.iterrows():
+                            fecha_str = f"{int(row['Año'])}-{int(row['Mes']):02d}-15"
+                            registro = {
+                                'Clave': str(clave),
+                                'Latitud': latitud,
+                                'Longitud': longitud,
+                                'Elevación (km)': elevacion,
+                                'Año': int(row['Año']),
+                                'Mes': int(row['Mes']),
+                                'Fecha': pd.to_datetime(fecha_str)
+                            }
+
+                            # Agregar valores promedio del resto de columnas
+                            registro.update(row.drop(['Año', 'Mes']).to_dict())
+
+                            # Cálculo de radiación solar promedio y corregida
+                            if not pd.isnull(latitud) and not pd.isnull(elevacion):
+                                rad_prom = calcular_radiacion_mensual(latitud, elevacion, int(row['Mes']))
+                                rad_corr = rad_prom * (1 + k * elevacion)
+                            else:
+                                rad_prom = np.nan
+                                rad_corr = np.nan
+
+                            registro["Radiación Solar Promedio (W/m²)"] = rad_prom
+                            registro["Radiación Solar Corregida (W/m²)"] = rad_corr
 
                         # Agregar valores promedio del resto de columnas
                         #registro.update(row.drop(['Año', 'Mes']).to_dict())
@@ -2653,145 +2654,145 @@ def consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size):
 
 
                         
-                        datos_consolidados.append(registro)
+                            datos_consolidados.append(registro)
 
-                except Exception as e:
-                    st.warning(f"Error al procesar la estación {clave}: {e}")
+                    except Exception as e:
+                        st.warning(f"Error al procesar la estación {clave}: {e}")
 
-    # Convertir a DataFrame y ordenar por Clave, Año, Mes
-    df_consolidado = pd.DataFrame(datos_consolidados)
-    if not df_consolidado.empty:
-        df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
+        # Convertir a DataFrame y ordenar por Clave, Año, Mes
+        df_consolidado = pd.DataFrame(datos_consolidados)
+        if not df_consolidado.empty:
+            df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
 
-    return df_consolidado
+        return df_consolidado
 
 
 
-#st.cache_data
-def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
-    """
-    Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
+    #st.cache_data
+    def imputar_geoespacial(fila, columnas_imputar, df, tree, k=3):
+        """
+        Imputa valores faltantes usando una media ponderada inversa de estaciones cercanas.
 
-    Args:
-        fila (pd.Series): Fila actual del DataFrame.
-        columnas_imputar (list): Columnas a imputar.
-        df (pd.DataFrame): DataFrame completo.
-        tree (cKDTree): Árbol KD para buscar vecinos.
-        k (int): Número de vecinos a considerar.
+        Args:
+            fila (pd.Series): Fila actual del DataFrame.
+            columnas_imputar (list): Columnas a imputar.
+            df (pd.DataFrame): DataFrame completo.
+            tree (cKDTree): Árbol KD para buscar vecinos.
+            k (int): Número de vecinos a considerar.
 
-    Returns:
-        pd.Series: Fila con valores imputados.
-    """
-    # Si no hay coordenadas, no se puede imputar
-    if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
+        Returns:
+            pd.Series: Fila con valores imputados.
+        """
+        # Si no hay coordenadas, no se puede imputar
+        if pd.isnull(fila['Latitud']) or pd.isnull(fila['Longitud']):
+            return fila
+
+        coord = [fila['Latitud'], fila['Longitud']]
+        distancias, indices = tree.query([coord], k=k)
+        estaciones_cercanas = df.iloc[indices[0]]
+
+        for columna in columnas_imputar:
+            if pd.isnull(fila[columna]):
+                valores_cercanos = estaciones_cercanas[columna].dropna()
+                if not valores_cercanos.empty:
+                    pesos = 1 / (distancias[0][:len(valores_cercanos)] + 1e-5)
+                    fila[columna] = np.average(valores_cercanos, weights=pesos)
         return fila
 
-    coord = [fila['Latitud'], fila['Longitud']]
-    distancias, indices = tree.query([coord], k=k)
-    estaciones_cercanas = df.iloc[indices[0]]
+    # Ejecución del flujo
+    try:
 
-    for columna in columnas_imputar:
-        if pd.isnull(fila[columna]):
-            valores_cercanos = estaciones_cercanas[columna].dropna()
-            if not valores_cercanos.empty:
-                pesos = 1 / (distancias[0][:len(valores_cercanos)] + 1e-5)
-                fila[columna] = np.average(valores_cercanos, weights=pesos)
-    return fila
+        #df_consolidado_imputado     
+        import os
+        import pandas as pd
+        import numpy as np
+        from scipy.spatial import cKDTree
+        from prophet import Prophet
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+        import streamlit as st
 
-# Ejecución del flujo
-try:
+        # --- Cargar o procesar df_consolidado_imputado ---
+        if os.path.exists("df_consolidado_procesado.csv") and not st.button("Forzar reprocesamiento"):
+            st.success("Datos cargados desde archivo.")
+            df_consolidado_imputado = pd.read_csv("df_consolidado_procesado.csv", parse_dates=["Fecha"])
+        else:
+            st.warning("Procesando datos desde cero...")
 
-    #df_consolidado_imputado     
-    import os
-    import pandas as pd
-    import numpy as np
-    from scipy.spatial import cKDTree
-    from prophet import Prophet
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import streamlit as st
+            # Aquí insertas tu código para recolectar, consolidar e imputar
+            coordenadas_estaciones = recolectar_coordenadas_nombres(claves, output_dirs)
+            df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
+            df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
+            df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(
+                lambda group: group.interpolate(method='linear', limit_direction='forward', axis=0)
+            )
 
-    # --- Cargar o procesar df_consolidado_imputado ---
-    if os.path.exists("df_consolidado_procesado.csv") and not st.button("Forzar reprocesamiento"):
-        st.success("Datos cargados desde archivo.")
-        df_consolidado_imputado = pd.read_csv("df_consolidado_procesado.csv", parse_dates=["Fecha"])
-    else:
-        st.warning("Procesando datos desde cero...")
-
-        # Aquí insertas tu código para recolectar, consolidar e imputar
-        coordenadas_estaciones = recolectar_coordenadas_nombres(claves, output_dirs)
-        df_consolidado = consolidar_datos_estaciones(claves, output_dirs, elevation_data, tile_size)
-        df_consolidado = df_consolidado.sort_values(by=['Clave', 'Año', 'Mes'])
-        df_consolidado_interpolado = df_consolidado.groupby('Clave').apply(
-            lambda group: group.interpolate(method='linear', limit_direction='forward', axis=0)
-        )
-
-        coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
-        tree = cKDTree(coordenadas)
-        columnas_imputar = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)',
+            coordenadas = df_consolidado[['Latitud', 'Longitud']].dropna().values
+            tree = cKDTree(coordenadas)
+            columnas_imputar = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)',
                         'Temperatura Mínima(ºC)', 'Precipitación(mm)']
 
-        df_consolidado_imputado = df_consolidado_interpolado.apply(
-            lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
-            axis=1
-        )
-        df_consolidado_imputado
-        df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
-        st.success("Datos procesados y guardados.")
+            df_consolidado_imputado = df_consolidado_interpolado.apply(
+                lambda row: imputar_geoespacial(row, columnas_imputar, df_consolidado_interpolado, tree),
+                axis=1
+            )
+            df_consolidado_imputado
+            df_consolidado_imputado.to_csv("df_consolidado_procesado.csv", index=False)
+            st.success("Datos procesados y guardados.")
 
 
-    # --- Agrupar estaciones por porcentaje de datos válidos ---
-    agrupamiento_estaciones = {"50-100%": [], "25-50%": [], "0-25%": []}
-    if not df_consolidado_imputado.empty:
-        max_registros = df_consolidado_imputado['Clave'].value_counts().max()
-        for clave, count in df_consolidado_imputado['Clave'].value_counts().items():
-            if count >= 0.5 * max_registros:
-                agrupamiento_estaciones["50-100%"].append(clave)
-            elif 0.25 * max_registros <= count < 0.5 * max_registros:
-                agrupamiento_estaciones["25-50%"].append(clave)
-            else:
-                agrupamiento_estaciones["0-25%"].append(clave)
+        # --- Agrupar estaciones por porcentaje de datos válidos ---
+        agrupamiento_estaciones = {"50-100%": [], "25-50%": [], "0-25%": []}
+        if not df_consolidado_imputado.empty:
+            max_registros = df_consolidado_imputado['Clave'].value_counts().max()
+            for clave, count in df_consolidado_imputado['Clave'].value_counts().items():
+                if count >= 0.5 * max_registros:
+                    agrupamiento_estaciones["50-100%"].append(clave)
+                elif 0.25 * max_registros <= count < 0.5 * max_registros:
+                    agrupamiento_estaciones["25-50%"].append(clave)
+                else:
+                    agrupamiento_estaciones["0-25%"].append(clave)
 
-        grupo_filtrado = st.selectbox("Selecciona grupo de estaciones por cantidad de datos", ["50-100%", "25-50%"])
-        estaciones_disponibles = agrupamiento_estaciones[grupo_filtrado]
-    else:
-        estaciones_disponibles = []
-
-    # --- Predicción con Prophet ---
-    if estaciones_disponibles:
-        st.subheader("Predicción con Prophet")
-        #variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
-        variables_disponibles = [
-            'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)',
-            'Precipitación(mm)', 'Evaporación(mm)',
-            'Radiación Solar Promedio (W/m²)', 'Radiación Solar Corregida (W/m²)'
-]
-
-        estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
-        variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
-
-        df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
-
-        if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
-            st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
+            grupo_filtrado = st.selectbox("Selecciona grupo de estaciones por cantidad de datos", ["50-100%", "25-50%"])
+            estaciones_disponibles = agrupamiento_estaciones[grupo_filtrado]
         else:
-            df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
-            df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
+            estaciones_disponibles = []
+
+        # --- Predicción con Prophet ---
+        if estaciones_disponibles:
+            st.subheader("Predicción con Prophet")
+            #variables_disponibles = ['Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Precipitación(mm)', 'Evaporación(mm)']
+            variables_disponibles = [
+                'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)',
+                'Precipitación(mm)', 'Evaporación(mm)',
+                'Radiación Solar Promedio (W/m²)', 'Radiación Solar Corregida (W/m²)'
+    ]
+
+            estacion_seleccionada = st.selectbox("Selecciona una estación", estaciones_disponibles)
+            variable_seleccionada = st.selectbox("Selecciona una variable climática", variables_disponibles)
+
+            df_estacion = df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_seleccionada]
+
+            if 'Fecha' not in df_estacion.columns or variable_seleccionada not in df_estacion.columns:
+                st.warning("No se encuentra la columna 'Fecha' o la variable seleccionada en los datos.")
+            else:
+                df_estacion = df_estacion[['Fecha', variable_seleccionada]].rename(columns={'Fecha': 'ds', variable_seleccionada: 'y'})
+                df_estacion = df_estacion.dropna(subset=['ds', 'y']).drop_duplicates(subset=['ds'])
             # Forzar frecuencia mensual si hay al menos 2 datos
             #df_estacion = df_estacion.set_index('ds').asfreq('MS').reset_index()
-            df_estacion = df_estacion.sort_values('ds')  # Asegura orden cronológico
+                df_estacion = df_estacion.sort_values('ds')  # Asegura orden cronológico
 
 
-            if df_estacion['y'].notna().sum() < 2:
-                st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
-            else:
-                with st.spinner("Entrenando modelo Prophet..."):
-                    try:
-                        modelo = Prophet()
-                        modelo.fit(df_estacion)
+                if df_estacion['y'].notna().sum() < 2:
+                    st.warning("No hay suficientes datos válidos para entrenar el modelo Prophet.")
+                else:
+                    with st.spinner("Entrenando modelo Prophet..."):
+                        try:
+                            modelo = Prophet()
+                            modelo.fit(df_estacion)
 
-                        futuro = modelo.make_future_dataframe(periods=365)
-                        predicciones = modelo.predict(futuro)
+                            futuro = modelo.make_future_dataframe(periods=365)
+                            predicciones = modelo.predict(futuro)
 
                         #fig_pred = modelo.plot(predicciones)
                         #st.subheader(f"Predicción para {variable_seleccionada} ({estacion_seleccionada})")
@@ -2801,61 +2802,61 @@ try:
                         #st.subheader("Componentes de la predicción")
                         #st.pyplot(fig_componentes)
 
-                        import plotly.graph_objects as go
+                            import plotly.graph_objects as go
 
-                        # --- Gráfico de predicción ---
-                        fig_pred = go.Figure()
-                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat'], name='Predicción', line=dict(color='blue')))
-                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_upper'], name='Intervalo superior', line=dict(color='lightblue')))
-                        fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_lower'], name='Intervalo inferior', line=dict(color='lightblue'), fill='tonexty'))
+                            # --- Gráfico de predicción ---
+                            fig_pred = go.Figure()
+                            fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat'], name='Predicción', line=dict(color='blue')))
+                            fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_upper'], name='Intervalo superior', line=dict(color='lightblue')))
+                            fig_pred.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yhat_lower'], name='Intervalo inferior', line=dict(color='lightblue'), fill='tonexty'))
 
-                        fig_pred.update_layout(
-                            title=f"Predicción para {variable_seleccionada} ({estacion_seleccionada})",
-                            xaxis_title="Fecha", yaxis_title="Valor Predicho"
-                        )
-                        st.plotly_chart(fig_pred)
+                            fig_pred.update_layout(
+                                title=f"Predicción para {variable_seleccionada} ({estacion_seleccionada})",
+                                xaxis_title="Fecha", yaxis_title="Valor Predicho"
+                            )
+                            st.plotly_chart(fig_pred)
 
-                        # --- Componentes de la predicción ---
-                        fig_trend = go.Figure()
-                        fig_trend.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['trend'], name='Tendencia', line=dict(color='green')))
-                        fig_trend.update_layout(title="Componente de Tendencia", xaxis_title="Fecha", yaxis_title="Trend")
-                        st.plotly_chart(fig_trend)
+                            # --- Componentes de la predicción ---
+                            fig_trend = go.Figure()
+                            fig_trend.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['trend'], name='Tendencia', line=dict(color='green')))
+                            fig_trend.update_layout(title="Componente de Tendencia", xaxis_title="Fecha", yaxis_title="Trend")
+                            st.plotly_chart(fig_trend)
 
                         #if 'yearly' in predicciones.columns:
                         #    fig_seasonal = go.Figure()
                         #    fig_seasonal.add_trace(go.Scatter(x=predicciones['ds'], y=predicciones['yearly'], name='Estacionalidad Anual', line=dict(color='orange')))
                         #    fig_seasonal.update_layout(title="Componente Estacional Anual", xaxis_title="Fecha", yaxis_title="Seasonal")
                         #    st.plotly_chart(fig_seasonal)
-                        import plotly.express as px
-                        import pandas as pd
+                            import plotly.express as px
+                            import pandas as pd
 
-                        # Extraer la componente estacional yearly
-                        #componente_yearly = modelo.predict_seasonal_components(futuro)
-                        componente_yearly = modelo.predict(futuro)
+                            # Extraer la componente estacional yearly
+                            #componente_yearly = modelo.predict_seasonal_components(futuro)
+                            componente_yearly = modelo.predict(futuro)
 
 
-                        # Asegurar que los datos están disponibles
-                        if 'yearly' in componente_yearly.columns:
+                            # Asegurar que los datos están disponibles
+                            if 'yearly' in componente_yearly.columns:
                             # Agregar columna de día del año
                             #componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
-                            componente_yearly = predicciones[['ds', 'yearly']].copy()
-                            componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
+                                componente_yearly = predicciones[['ds', 'yearly']].copy()
+                                componente_yearly['day_of_year'] = componente_yearly['ds'].dt.dayofyear
 
-                            promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
+                                promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
 
-                            # Agrupar por día del año y promediar para suavizar la gráfica
-                            promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
+                                # Agrupar por día del año y promediar para suavizar la gráfica
+                                promedio_por_dia = componente_yearly.groupby('day_of_year')['yearly'].mean().reset_index()
 
-                            # Graficar en Plotly
-                            fig_yearly = px.line(
-                                promedio_por_dia,
-                                x='day_of_year',
-                                y='yearly',
-                                title="Componente Estacional Anual (Promedio por Día del Año)",
-                                labels={'day_of_year': 'Día del Año', 'yearly': 'Efecto Estacional'}
-                            )
-                            fig_yearly.update_traces(line=dict(color='orange'))
-                            st.plotly_chart(fig_yearly)
+                                # Graficar en Plotly
+                                fig_yearly = px.line(
+                                    promedio_por_dia,
+                                    x='day_of_year',
+                                    y='yearly',
+                                    title="Componente Estacional Anual (Promedio por Día del Año)",
+                                    labels={'day_of_year': 'Día del Año', 'yearly': 'Efecto Estacional'}
+                                )
+                                fig_yearly.update_traces(line=dict(color='orange'))
+                                st.plotly_chart(fig_yearly)
 
                         
                         #df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
@@ -2870,14 +2871,14 @@ try:
                         #ax.grid(axis='y')
                         #st.pyplot(fig_bar)
 
-                        import plotly.express as px
+                            import plotly.express as px
 
-                        # --- Resumen por década con Plotly ---
-                        df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
-                        resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
-                        resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
+                            # --- Resumen por década con Plotly ---
+                            df_estacion['Década'] = (df_estacion['ds'].dt.year // 10) * 10
+                            resumen_decadas = df_estacion.groupby('Década')['y'].mean().reset_index()
+                            resumen_decadas.columns = ['Década', f'Promedio de {variable_seleccionada} (°C)']
 
-                        st.subheader("Resumen por Década")
+                            st.subheader("Resumen por Década")
 
                         #fig_bar = px.bar(
                         #    resumen_decadas,
@@ -2892,116 +2893,116 @@ try:
                         #fig_bar.update_layout(xaxis_title="Década", yaxis_title="°C")
                         #st.plotly_chart(fig_bar)
 
-                        fig_bar = px.bar(
-                            resumen_decadas,
-                            x='Década',
-                            y=f'Promedio de {variable_seleccionada} (°C)',
-                            color=f'Promedio de {variable_seleccionada} (°C)',
-                            color_continuous_scale='RdYlBu_r',  # Alternativas: 'RdYlBu_r', 'Blues', 'Viridis'
-                            title=f'{variable_seleccionada} Promedio por Década',
-                            labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
-                            height=450
-                        )
-                        fig_bar.update_layout(
-                            xaxis_title="Década",
-                            yaxis_title="°C",
-                            plot_bgcolor="white"
-                        )
-                        st.plotly_chart(fig_bar)
+                            fig_bar = px.bar(
+                                resumen_decadas,
+                                x='Década',
+                                y=f'Promedio de {variable_seleccionada} (°C)',
+                                color=f'Promedio de {variable_seleccionada} (°C)',
+                                color_continuous_scale='RdYlBu_r',  # Alternativas: 'RdYlBu_r', 'Blues', 'Viridis'
+                                title=f'{variable_seleccionada} Promedio por Década',
+                                labels={f'Promedio de {variable_seleccionada} (°C)': '°C'},
+                                height=450
+                            )
+                            fig_bar.update_layout(
+                                xaxis_title="Década",
+                                yaxis_title="°C",
+                                plot_bgcolor="white"
+                            )
+                            st.plotly_chart(fig_bar)
 
-                        import pandas as pd
-                        import numpy as np
-                        from statsmodels.tsa.seasonal import STL
-                        from scipy.fft import fft, fftfreq
-                        import plotly.graph_objects as go
+                            import pandas as pd
+                            import numpy as np
+                            from statsmodels.tsa.seasonal import STL
+                            from scipy.fft import fft, fftfreq
+                            import plotly.graph_objects as go
 
-                        # Función para aplicar STL y análisis de Fourier
-                        def descomposicion_y_fft(df, columna_valor='Radiación Promedio Anual (W/m²)'):
-                            df = df.sort_values('Año').reset_index(drop=True)
+                            # Función para aplicar STL y análisis de Fourier
+                            def descomposicion_y_fft(df, columna_valor='Radiación Promedio Anual (W/m²)'):
+                                df = df.sort_values('Año').reset_index(drop=True)
 
-                            # Crear índice de fechas con frecuencia anual
-                            serie = pd.Series(df[columna_valor].values,
+                                # Crear índice de fechas con frecuencia anual
+                                serie = pd.Series(df[columna_valor].values,
                                               index=pd.date_range(start=f"{df['Año'].min()}-01-01", periods=len(df), freq='Y'))
 
-                            stl = STL(serie, period=11, robust=True)
-                            resultado = stl.fit()
+                                stl = STL(serie, period=11, robust=True)
+                                resultado = stl.fit()
 
-                            # FFT sobre la componente de residuo
-                            residual = resultado.resid.dropna().values
-                            n = len(residual)
-                            fft_vals = np.abs(fft(residual - np.mean(residual)))
-                            fft_freqs = fftfreq(n, d=1)
+                                # FFT sobre la componente de residuo
+                                residual = resultado.resid.dropna().values
+                                n = len(residual)
+                                fft_vals = np.abs(fft(residual - np.mean(residual)))
+                                fft_freqs = fftfreq(n, d=1)
 
-                            mask = fft_freqs > 0
-                            frecuencias = fft_freqs[mask]
-                            amplitudes = fft_vals[mask]
-                            periodos = 1 / frecuencias
+                                mask = fft_freqs > 0
+                                frecuencias = fft_freqs[mask]
+                                amplitudes = fft_vals[mask]
+                                periodos = 1 / frecuencias
 
-                            espectro = pd.DataFrame({'Periodo (años)': periodos, 'Amplitud': amplitudes})
-                            return resultado, espectro
+                                espectro = pd.DataFrame({'Periodo (años)': periodos, 'Amplitud': amplitudes})
+                                return resultado, espectro
 
-                        # Ejecutar análisis
-                        estacion_objetivo = estacion_seleccionada
-                        df_radiacion_anual = (
-                            df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_objetivo]
-                            .groupby(df_consolidado_imputado['Fecha'].dt.year)['Radiación Solar Corregida (W/m²)']
-                            .mean()
-                            .reset_index()
-                            .rename(columns={'Fecha': 'Año', 'Radiación Solar Corregida (W/m²)': 'Radiación Promedio Anual (W/m²)'})
-                        )
+                            # Ejecutar análisis
+                            estacion_objetivo = estacion_seleccionada
+                            df_radiacion_anual = (
+                                df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_objetivo]
+                                .groupby(df_consolidado_imputado['Fecha'].dt.year)['Radiación Solar Corregida (W/m²)']
+                                .mean()
+                                .reset_index()
+                                .rename(columns={'Fecha': 'Año', 'Radiación Solar Corregida (W/m²)': 'Radiación Promedio Anual (W/m²)'})
+                            )
 
-                        resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
+                            resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
 
-                        # === Plotly: Tendencia STL ===
-                        st.subheader("Tendencia de la Radiación Solar Anual")
-                        fig_stl = go.Figure()
-                        fig_stl.add_trace(go.Scatter(
-                            x=resultado_stl.trend.index.year,
-                            y=resultado_stl.trend,
-                            mode='lines',
-                            name='Tendencia',
-                            line=dict(color='green')
-                        ))
-                        fig_stl.update_layout(
-                            title='Tendencia (STL)',
-                            xaxis_title='Año',
-                            yaxis_title='W/m²',
-                            height=400,
-                            plot_bgcolor='white'
-                        )
-                        st.plotly_chart(fig_stl)
+                            # === Plotly: Tendencia STL ===
+                            st.subheader("Tendencia de la Radiación Solar Anual")
+                            fig_stl = go.Figure()
+                            fig_stl.add_trace(go.Scatter(
+                                x=resultado_stl.trend.index.year,
+                                y=resultado_stl.trend,
+                                mode='lines',
+                                name='Tendencia',
+                                line=dict(color='green')
+                            ))
+                            fig_stl.update_layout(
+                                title='Tendencia (STL)',
+                                xaxis_title='Año',
+                                yaxis_title='W/m²',
+                                height=400,
+                                plot_bgcolor='white'
+                            )
+                            st.plotly_chart(fig_stl)
 
-                        # === Plotly: Espectro de Fourier ===
-                        st.subheader("Espectro de Frecuencia (Fourier)")
-                        fig_fft = go.Figure()
-                        fig_fft.add_trace(go.Scatter(
-                            x=espectro_fft['Periodo (años)'],
-                            y=espectro_fft['Amplitud'],
-                            mode='lines+markers',
-                            line=dict(color='purple'),
-                            name='Fourier'
-                        ))
-                        fig_fft.update_layout(
-                            title='Análisis de Periodicidad (Fourier)',
-                            xaxis_title='Periodo (años)',
-                            yaxis_title='Amplitud',
-                            xaxis_range=[0, 30],
-                            height=400,
-                            plot_bgcolor='white'
-                        )
-                        st.plotly_chart(fig_fft)
+                            # === Plotly: Espectro de Fourier ===
+                            st.subheader("Espectro de Frecuencia (Fourier)")
+                            fig_fft = go.Figure()
+                            fig_fft.add_trace(go.Scatter(
+                                x=espectro_fft['Periodo (años)'],
+                                y=espectro_fft['Amplitud'],
+                                mode='lines+markers',
+                                line=dict(color='purple'),
+                                name='Fourier'
+                            ))
+                            fig_fft.update_layout(
+                                title='Análisis de Periodicidad (Fourier)',
+                                xaxis_title='Periodo (años)',
+                                yaxis_title='Amplitud',
+                                xaxis_range=[0, 30],
+                                height=400,
+                                plot_bgcolor='white'
+                            )
+                            st.plotly_chart(fig_fft)
 
-                    except Exception as e:
-                        st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
-    else:
-        st.warning("No hay estaciones suficientes en este grupo.")
-
-
+                        except Exception as e:
+                            st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
+        else:
+            st.warning("No hay estaciones suficientes en este grupo.")
 
 
 
-except Exception as e:
-    st.error(f"Error en el flujo de procesamiento: {e}")
+
+
+    except Exception as e:
+        st.error(f"Error en el flujo de procesamiento: {e}")
 
 
 
