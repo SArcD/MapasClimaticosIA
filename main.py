@@ -27,39 +27,39 @@ if seccion == "Descripción":
 elif seccion == "Mapas Climatológicos":
 
 
-# URL base del repositorio en GitHub
-github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
+    # URL base del repositorio en GitHub
+    github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
-@st.cache_data
-# Función para obtener la lista de archivos en una carpeta desde GitHub
-def list_files_from_github(folder_path):
-    url = github_base_url + folder_path
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        files = response.json()
-        return [file['path'] for file in files if file['type'] == 'file']
-    except Exception as e:
-        st.error(f"Error al listar archivos en {folder_path}: {e}")
-        return []
+    @st.cache_data
+    # Función para obtener la lista de archivos en una carpeta desde GitHub
+    def list_files_from_github(folder_path):
+        url = github_base_url + folder_path
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            files = response.json()
+            return [file['path'] for file in files if file['type'] == 'file']
+        except Exception as e:
+            st.error(f"Error al listar archivos en {folder_path}: {e}")
+            return []
 
-@st.cache_data
-# Función para leer un archivo CSV desde GitHub
-def read_csv_from_github(file_path):
-    # Convertir la URL a RAW para obtener el contenido del archivo
-    raw_url = file_path.replace("https://github.com", "https://raw.githubusercontent.com").replace("/blob/", "/")
-    try:
-        response = requests.get(raw_url)
-        response.raise_for_status()
-        # Usar io.StringIO para leer el contenido como un CSV
-        return pd.read_csv(io.StringIO(response.text))
-    except Exception as e:
-        st.error(f"Error al leer {file_path}: {e}")
-        return None
+    @st.cache_data
+    # Función para leer un archivo CSV desde GitHub
+    def read_csv_from_github(file_path):
+        # Convertir la URL a RAW para obtener el contenido del archivo
+        raw_url = file_path.replace("https://github.com", "https://raw.githubusercontent.com").replace("/blob/", "/")
+        try:
+            response = requests.get(raw_url)
+            response.raise_for_status()
+            # Usar io.StringIO para leer el contenido como un CSV
+            return pd.read_csv(io.StringIO(response.text))
+        except Exception as e:
+            st.error(f"Error al leer {file_path}: {e}")
+            return None
 
-# Listar archivos en las carpetas
-colima_files = list_files_from_github("datos_estaciones_colima")
-cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
+    # Listar archivos en las carpetas
+    colima_files = list_files_from_github("datos_estaciones_colima")
+    cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
 
 # Mostrar archivos y datos
 #st.title("Análisis de Datos Meteorológicos")
@@ -80,135 +80,135 @@ cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
 #    if df is not None:
 #        st.dataframe(df)
 # Carpetas en el repositorio
-output_dir_colima = "datos_estaciones_colima"
-output_dir_cerca = "datos_estaciones_cerca_colima"
+    output_dir_colima = "datos_estaciones_colima"
+    output_dir_cerca = "datos_estaciones_cerca_colima"
 
 
-@st.cache_data
-# Descargar archivos desde enlaces utilizando requests
-def download_files_from_links(file_links, output_dir):
-    os.makedirs(output_dir, exist_ok=True)
-    with open(file_links, "r") as f:
-        links = f.readlines()
-    for link in links:
-        link = link.strip()
-        if link:
-            # Extraer el ID o el nombre del archivo del enlace
-            file_name = link.split("id=")[-1] if "id=" in link else os.path.basename(link)
-            output_file = os.path.join(output_dir, file_name)
-            if not os.path.exists(output_file):
-                try:
-                    st.write(f"Descargando {file_name}...")
-                    response = requests.get(link, stream=True)
-                    response.raise_for_status()  # Levantar excepción para códigos de estado HTTP 4xx/5xx
-                    with open(output_file, "wb") as f:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            f.write(chunk)
-                    st.success(f"Archivo descargado: {file_name}")
-                except Exception as e:
-                    st.error(f"Error al descargar {link}: {e}")
-            else:
-                st.write(f"Archivo ya existe: {file_name}")
+    @st.cache_data
+    # Descargar archivos desde enlaces utilizando requests
+    def download_files_from_links(file_links, output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+        with open(file_links, "r") as f:
+            links = f.readlines()
+        for link in links:
+            link = link.strip()
+            if link:
+                # Extraer el ID o el nombre del archivo del enlace
+                file_name = link.split("id=")[-1] if "id=" in link else os.path.basename(link)
+                output_file = os.path.join(output_dir, file_name)
+                if not os.path.exists(output_file):
+                    try:
+                        st.write(f"Descargando {file_name}...")
+                        response = requests.get(link, stream=True)
+                        response.raise_for_status()  # Levantar excepción para códigos de estado HTTP 4xx/5xx
+                        with open(output_file, "wb") as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                f.write(chunk)
+                        st.success(f"Archivo descargado: {file_name}")
+                    except Exception as e:
+                        st.error(f"Error al descargar {link}: {e}")
+                else:
+                    st.write(f"Archivo ya existe: {file_name}")
 
 # Descargar los archivos
 #download_files_from_links(links_colima, output_dir_colima)#
 #download_files_from_links(links_cerca, output_dir_cerca)
 
 
-import numpy as np
-import streamlit as st
-import requests
-import os
+    import numpy as np
+    import streamlit as st
+    import requests
+    import os
 
-#############import requests
-import numpy as np
-import os
-import streamlit as st
-import requests
+    #############import requests
+    import numpy as np
+    import os
+    import streamlit as st
+    import requests
 
-# URL del archivo en Dropbox
-dropbox_url = "https://www.dropbox.com/scl/fi/y61orc7bzt2p2d22sxtcu/Colima_ACE2.ace2?rlkey=8asyjm6pjqjo0z02gofpg9l2b&st=eqnn71an&dl=1"
-file_path = "Colima_ACE2.ace2"
+    # URL del archivo en Dropbox
+    dropbox_url = "https://www.dropbox.com/scl/fi/y61orc7bzt2p2d22sxtcu/Colima_ACE2.ace2?rlkey=8asyjm6pjqjo0z02gofpg9l2b&st=eqnn71an&dl=1"
+    file_path = "Colima_ACE2.ace2"
 
-# Descargar el archivo ACE2 si no existe
-if not os.path.exists(file_path):
-    st.write("Descargando el archivo ACE2 desde Dropbox...")
-    try:
-        response = requests.get(dropbox_url, stream=True)
-        response.raise_for_status()
-        with open(file_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        st.success("Archivo ACE2 descargado correctamente.")
-    except Exception as e:
-        st.error(f"Error al descargar el archivo ACE2: {e}")
-        st.stop()
+    # Descargar el archivo ACE2 si no existe
+    if not os.path.exists(file_path):
+        st.write("Descargando el archivo ACE2 desde Dropbox...")
+        try:
+            response = requests.get(dropbox_url, stream=True)
+            response.raise_for_status()
+            with open(file_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            st.success("Archivo ACE2 descargado correctamente.")
+        except Exception as e:
+            st.error(f"Error al descargar el archivo ACE2: {e}")
+            st.stop()
 
-@st.cache_data
-# Diagnóstico de archivo
-def diagnosticar_archivo(file_path):
-    """
-    Verifica el tamaño del archivo y calcula dimensiones potenciales.
-    """
-    try:
-        # Tamaño del archivo en bytes
-        file_size_bytes = os.path.getsize(file_path)
-        #st.write(f"Tamaño del archivo: {file_size_bytes} bytes")
+    @st.cache_data
+    # Diagnóstico de archivo
+    def diagnosticar_archivo(file_path):
+        """
+        Verifica el tamaño del archivo y calcula dimensiones potenciales.
+        """
+        try:
+            # Tamaño del archivo en bytes
+            file_size_bytes = os.path.getsize(file_path)
+            #st.write(f"Tamaño del archivo: {file_size_bytes} bytes")
 
-        # Verificar divisibilidad por el tamaño de float32 (4 bytes)
-        if file_size_bytes % 4 != 0:
-            st.error("El tamaño del archivo no es divisible por 4. Puede estar corrupto o no ser un archivo válido.")
+            # Verificar divisibilidad por el tamaño de float32 (4 bytes)
+            if file_size_bytes % 4 != 0:
+                st.error("El tamaño del archivo no es divisible por 4. Puede estar corrupto o no ser un archivo válido.")
+                return None
+
+            # Calcular número total de elementos
+            num_elements = file_size_bytes // 4
+            #st.write(f"Número total de elementos (float32): {num_elements}")
+
+            # Buscar dimensiones cuadradas o rectangulares
+            possible_dims = []
+            for rows in range(1, int(np.sqrt(num_elements)) + 1):
+                if num_elements % rows == 0:
+                    cols = num_elements // rows
+                    possible_dims.append((rows, cols))
+
+            #st.write(f"Dimensiones posibles: {possible_dims}")
+            return possible_dims
+        except Exception as e:
+            st.error(f"Error al diagnosticar el archivo: {e}")
             return None
 
-        # Calcular número total de elementos
-        num_elements = file_size_bytes // 4
-        #st.write(f"Número total de elementos (float32): {num_elements}")
 
-        # Buscar dimensiones cuadradas o rectangulares
-        possible_dims = []
-        for rows in range(1, int(np.sqrt(num_elements)) + 1):
-            if num_elements % rows == 0:
-                cols = num_elements // rows
-                possible_dims.append((rows, cols))
+    @st.cache_data
+    # Leer y calcular dimensiones automáticamente
+    def read_ace2(file_path, selected_dims):
+        """
+        Lee el archivo ACE2 y lo convierte a una matriz según las dimensiones seleccionadas.
+        """
+        try:
+            data = np.fromfile(file_path, dtype=np.float32)
+            st.write(f"Archivo leído con {data.size} elementos.")
 
-        #st.write(f"Dimensiones posibles: {possible_dims}")
-        return possible_dims
-    except Exception as e:
-        st.error(f"Error al diagnosticar el archivo: {e}")
-        return None
+            # Convertir los datos a la matriz con las dimensiones seleccionadas
+            rows, cols = selected_dims
+            return data.reshape((rows, cols))
+        except Exception as e:
+            st.error(f"Error al procesar el archivo ACE2: {e}")
+            return None
 
+    # Diagnosticar el archivo
+    dimensiones_posibles = diagnosticar_archivo(file_path)
 
-@st.cache_data
-# Leer y calcular dimensiones automáticamente
-def read_ace2(file_path, selected_dims):
-    """
-    Lee el archivo ACE2 y lo convierte a una matriz según las dimensiones seleccionadas.
-    """
-    try:
-        data = np.fromfile(file_path, dtype=np.float32)
-        st.write(f"Archivo leído con {data.size} elementos.")
+    # Si se encuentran dimensiones válidas
+    if dimensiones_posibles:
+        # Permitir que el usuario seleccione dimensiones
+        seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
+        elevation_data = read_ace2(file_path, seleccion)
 
-        # Convertir los datos a la matriz con las dimensiones seleccionadas
-        rows, cols = selected_dims
-        return data.reshape((rows, cols))
-    except Exception as e:
-        st.error(f"Error al procesar el archivo ACE2: {e}")
-        return None
-
-# Diagnosticar el archivo
-dimensiones_posibles = diagnosticar_archivo(file_path)
-
-# Si se encuentran dimensiones válidas
-if dimensiones_posibles:
-    # Permitir que el usuario seleccione dimensiones
-    seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
-    elevation_data = read_ace2(file_path, seleccion)
-
-    if elevation_data is not None:
-        tile_size = elevation_data.shape
-        st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
-else:
-    st.error("No se pudieron determinar dimensiones válidas para el archivo.")
+        if elevation_data is not None:
+            tile_size = elevation_data.shape
+            st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
+    else:
+        st.error("No se pudieron determinar dimensiones válidas para el archivo.")
 
 ## Usar dimensiones por defecto (6000x6000)
 #dim_por_defecto = (5760, 5420)
@@ -225,66 +225,66 @@ else:
 
 #############
 
-# Listas de claves
-claves_colima = [
-    "C06001", "C06049", "C06076", "C06074", "C06006", "C06040", "C06010", "C06015",
-    "C06024", "C06043", "C06071", "C06062", "C06014", "ARMCM", "C06008", "C06075",
-    "C06056", "C06020", "C06002", "C06009", "C06041", "C06021", "C06073", "C06012",
-    "C06042", "C06016", "CHNCM", "CSTCM", "LPSCM", "ASLCM", "ORTCM", "RDRCM", 
-    "CMLCM", "PNTCM", "SCHCM", "CQMCM", "LAECM", "CMTCM", "C06063", "C06004",
-    "C06060", "C06064", "C06068", "C06036", "C06054", "C06018", "C06051", "C06069",
-    "C06070", "C06025", "BVSCM", "CUACM", "TRPCM", "C06066", "C06039", "C06030",
-    "C06048", "C06061", "C06003", "C06005", "C06053", "C06011", "C06013", "C06059",
-    "C06067", "C06017", "C06022", "C06023", "C06058", "C06007", "C06052", "C06065",
-    "IXHCM", "ACMCM", "CMDCM", "MNZCM", "SNTCM", "MINCM", "CLRCM", "CLLCM", 
-    "CDOCM", "LDACM", "DJLCM", "TCMCM"]
+    # Listas de claves
+    claves_colima = [
+        "C06001", "C06049", "C06076", "C06074", "C06006", "C06040", "C06010", "C06015",
+        "C06024", "C06043", "C06071", "C06062", "C06014", "ARMCM", "C06008", "C06075",
+        "C06056", "C06020", "C06002", "C06009", "C06041", "C06021", "C06073", "C06012",
+        "C06042", "C06016", "CHNCM", "CSTCM", "LPSCM", "ASLCM", "ORTCM", "RDRCM", 
+        "CMLCM", "PNTCM", "SCHCM", "CQMCM", "LAECM", "CMTCM", "C06063", "C06004",
+        "C06060", "C06064", "C06068", "C06036", "C06054", "C06018", "C06051", "C06069",
+        "C06070", "C06025", "BVSCM", "CUACM", "TRPCM", "C06066", "C06039", "C06030",
+        "C06048", "C06061", "C06003", "C06005", "C06053", "C06011", "C06013", "C06059",
+        "C06067", "C06017", "C06022", "C06023", "C06058", "C06007", "C06052", "C06065",
+        "IXHCM", "ACMCM", "CMDCM", "MNZCM", "SNTCM", "MINCM", "CLRCM", "CLLCM", 
+        "CDOCM", "LDACM", "DJLCM", "TCMCM"]
 
-claves_colima_cerca = [
-    "C14008", "C14018", "MRZJL", "C14019", "C14046", "C14390", "ELCJL", "TMLJL", "C14027", "CHFJL",
-    "C14148", "C14112", "C14029", "C14094", "C14043", "C14343", "C14050", "BBAJL", "C14051", "C14315",
-    "VIHJL", "C14348", "C14011", "C14042", "C14086", "C14099", "C14336", "C14109", "TRJCM", "C14031",
-    "C14368", "C14034", "ECAJL", "C14141", "C14095", "C14052", "NOGJL", "C14142", "C14184", "TAPJL",
-    "C14005", "SLTJL", "C14322", "C14311", "C14151", "C14190", "C14024", "CPEJL", "CP4JL", "CP3JL",
-    "CP1JL", "C14067", "HIGJL", "RTOJL", "C14387", "C14350", "C14155", "C14022", "C14118", "C14342",
-    "ALCJL", "C14395", "IVAJL", "C14197", "C14158", "C14007", "C14079", "C14117", "C14166", "C14170",
-    "C14120", "C14352", "C14030", "CGZJL"
-]
+    claves_colima_cerca = [
+        "C14008", "C14018", "MRZJL", "C14019", "C14046", "C14390", "ELCJL", "TMLJL", "C14027", "CHFJL",
+        "C14148", "C14112", "C14029", "C14094", "C14043", "C14343", "C14050", "BBAJL", "C14051", "C14315",
+        "VIHJL", "C14348", "C14011", "C14042", "C14086", "C14099", "C14336", "C14109", "TRJCM", "C14031",
+        "C14368", "C14034", "ECAJL", "C14141", "C14095", "C14052", "NOGJL", "C14142", "C14184", "TAPJL",
+        "C14005", "SLTJL", "C14322", "C14311", "C14151", "C14190", "C14024", "CPEJL", "CP4JL", "CP3JL",
+        "CP1JL", "C14067", "HIGJL", "RTOJL", "C14387", "C14350", "C14155", "C14022", "C14118", "C14342",
+        "ALCJL", "C14395", "IVAJL", "C14197", "C14158", "C14007", "C14079", "C14117", "C14166", "C14170",
+        "C14120", "C14352", "C14030", "CGZJL"
+    ]
 
-claves_jalisco = {'BBAJL', 'C14008', 'C14018', 'C14019', 'C14027', 'C14029', 'C14043',
-                  'C14046', 'C14050', 'C14051', 'C14094', 'C14112', 'C14148', 'C14343',
-                  'C14390', 'CHFJL', 'ELCJL', 'MRZJL', 'TMLJL'}
-claves_michoacan = {'ALCJL', 'C14005', 'C14007', 'C14011', 'C14022', 'C14024', 'C14030',
-                    'C14031', 'C14034', 'C14042', 'C14052', 'C14067', 'C14079', 'C14086',
-                    'C14095', 'C14099', 'C14109', 'C14117', 'C14118', 'C14120', 'C14141',
-                    'C14142', 'C14151', 'C14155', 'C14158', 'C14166', 'C14170', 'C14184',
-                    'C14190', 'C14197', 'C14311', 'C14315', 'C14322', 'C14336', 'C14342',
-                    'C14348', 'C14350', 'C14352', 'C14368', 'C14387', 'C14395', 'CGZJL',
-                    'CP1JL', 'CP3JL', 'CP4JL', 'CPEJL', 'ECAJL', 'HIGJL', 'IVAJL', 'NOGJL',
-                    'RTOJL', 'SLTJL', 'TAPJL', 'TRJCM', 'VIHJL'}
+    claves_jalisco = {'BBAJL', 'C14008', 'C14018', 'C14019', 'C14027', 'C14029', 'C14043',
+                      'C14046', 'C14050', 'C14051', 'C14094', 'C14112', 'C14148', 'C14343',
+                      'C14390', 'CHFJL', 'ELCJL', 'MRZJL', 'TMLJL'}
+    claves_michoacan = {'ALCJL', 'C14005', 'C14007', 'C14011', 'C14022', 'C14024', 'C14030',
+                        'C14031', 'C14034', 'C14042', 'C14052', 'C14067', 'C14079', 'C14086',
+                        'C14095', 'C14099', 'C14109', 'C14117', 'C14118', 'C14120', 'C14141',
+                        'C14142', 'C14151', 'C14155', 'C14158', 'C14166', 'C14170', 'C14184',
+                        'C14190', 'C14197', 'C14311', 'C14315', 'C14322', 'C14336', 'C14342',
+                        'C14348', 'C14350', 'C14352', 'C14368', 'C14387', 'C14395', 'CGZJL',
+                        'CP1JL', 'CP3JL', 'CP4JL', 'CPEJL', 'ECAJL', 'HIGJL', 'IVAJL', 'NOGJL',
+                        'RTOJL', 'SLTJL', 'TAPJL', 'TRJCM', 'VIHJL'}
 
 
-# Combinar todas las claves
-claves = claves_colima + claves_colima_cerca
+    # Combinar todas las claves
+    claves = claves_colima + claves_colima_cerca
 
-# Columnas numéricas disponibles
-columnas_numericas = [
-    'Precipitación(mm)', 'Temperatura Media(ºC)', 
-    'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
-]
+    # Columnas numéricas disponibles
+    columnas_numericas = [
+        'Precipitación(mm)', 'Temperatura Media(ºC)', 
+        'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
+    ]
 
-@st.cache_data
-# Función para obtener años disponibles
-def obtener_anos_disponibles(claves, output_dirs):
-    anos_disponibles = set()
-    for output_dir in output_dirs:
-        for clave in claves:
-            archivo = os.path.join(output_dir, f"{clave}_df.csv")
-            if os.path.exists(archivo):
-                df = pd.read_csv(archivo)
-                df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
-                anos = df['Fecha'].dt.year.dropna().unique()
-                anos_disponibles.update(anos)
-    return sorted(anos_disponibles)
+    @st.cache_data
+    # Función para obtener años disponibles
+    def obtener_anos_disponibles(claves, output_dirs):
+        anos_disponibles = set()
+        for output_dir in output_dirs:
+            for clave in claves:
+                archivo = os.path.join(output_dir, f"{clave}_df.csv")
+                if os.path.exists(archivo):
+                    df = pd.read_csv(archivo)
+                    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+                    anos = df['Fecha'].dt.year.dropna().unique()
+                    anos_disponibles.update(anos)
+        return sorted(anos_disponibles)
 
 # Función para obtener la elevación desde el archivo ACE2
 #def obtener_elevacion(lat, lon, tile_size, elevation_data):
@@ -297,366 +297,353 @@ def obtener_anos_disponibles(claves, output_dirs):
 #    elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
 #    return max(0, elevacion)  # Evitar valores negativos
 
-@st.cache_data
-def obtener_elevacion(lat, lon, tile_size, elevation_data):
-    """
-    Obtiene la elevación en kilómetros desde el archivo ACE2 usando latitud y longitud.
-    """
-    try:
-        # Validar dimensiones de tile_size con elevation_data
-        if elevation_data.shape != tile_size:
-            raise ValueError(f"Las dimensiones de elevation_data {elevation_data.shape} no coinciden con tile_size {tile_size}")
+    @st.cache_data
+    def obtener_elevacion(lat, lon, tile_size, elevation_data):
+        """
+        Obtiene la elevación en kilómetros desde el archivo ACE2 usando latitud y longitud.
+        """
+        try:
+            # Validar dimensiones de tile_size con elevation_data
+            if elevation_data.shape != tile_size:
+                raise ValueError(f"Las dimensiones de elevation_data {elevation_data.shape} no coinciden con tile_size {tile_size}")
         
-        # Calcular índices en la matriz ACE2 basados en la latitud y longitud
-        lat_idx = int((30 - lat) * tile_size[0] / 15)  # Ajusta para el rango ACE2
-        lon_idx = int((lon + 105) * tile_size[1] / 15)  # Ajusta para el rango ACE2
+            # Calcular índices en la matriz ACE2 basados en la latitud y longitud
+            lat_idx = int((30 - lat) * tile_size[0] / 15)  # Ajusta para el rango ACE2
+            lon_idx = int((lon + 105) * tile_size[1] / 15)  # Ajusta para el rango ACE2
 
-        # Asegurar que los índices están dentro del rango válido
-        lat_idx = np.clip(lat_idx, 0, tile_size[0] - 1)
-        lon_idx = np.clip(lon_idx, 0, tile_size[1] - 1)
+            # Asegurar que los índices están dentro del rango válido
+            lat_idx = np.clip(lat_idx, 0, tile_size[0] - 1)
+            lon_idx = np.clip(lon_idx, 0, tile_size[1] - 1)
 
-        # Obtener elevación
-        elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
+            # Obtener elevación
+            elevacion = elevation_data[lat_idx, lon_idx] / 1000  # Convertir de metros a kilómetros
 
         # Depuración opcional: verificar índices y elevación calculada
         # st.write(f"Lat: {lat}, Lon: {lon}, Indices: ({lat_idx}, {lon_idx}), Elevación: {elevacion} km")
 
-        return max(0, elevacion)  # Evitar valores negativos
+            return max(0, elevacion)  # Evitar valores negativos
+        except Exception as e:
+            raise RuntimeError(f"Error al calcular elevación para lat={lat}, lon={lon}: {e}")
+
+    @st.cache_data
+    def procesar_datos(ano, mes, claves, output_dirs):
+        datos_procesados = []
+
+        for output_dir in output_dirs:
+            for clave in claves:
+                archivo = os.path.join(output_dir, f"{clave}_df.csv")
+                if os.path.exists(archivo):
+                    df = pd.read_csv(archivo) #aqui se agrego un eliminador de espacios
+                    df.columns = df.columns.str.strip()
+                    df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
+                    df['ano'] = df['Fecha'].dt.year
+                    df['mes'] = df['Fecha'].dt.month
+
+                    # Filtrar por año y mes
+                    df_filtrado = df[df['ano'] == ano]
+                    if mes and mes != 0:  # Si se selecciona un mes específico
+                        df_filtrado = df_filtrado[df_filtrado['mes'] == mes]
+
+                    # Si no hay datos para el año (o mes) seleccionado, omitir esta estación
+                    if df_filtrado.empty:
+                        continue
+
+                    # Limpiar columnas numéricas y calcular promedios
+                    promedios = {}
+                    for col in columnas_numericas:
+                        if col in df_filtrado.columns:
+                            df_filtrado[col] = pd.to_numeric(df_filtrado[col].astype(str).str.replace('[^0-9.]', '', regex=True), errors='coerce')
+                            promedios[col] = df_filtrado[col].mean()
+
+                    # Obtener latitud y longitud
+                    if 'Latitud' in df.columns and 'Longitud' in df.columns:
+                        latitud = df['Latitud'].iloc[0]
+                        longitud = df['Longitud'].iloc[0]
+                        elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
+                    else:
+                        latitud = np.nan
+                        longitud = np.nan
+                        elevacion = np.nan
+
+                    # Determinar el estado de la estación
+                    if clave in claves_colima:
+                        estado = "Colima"
+                    elif clave in claves_jalisco:
+                        estado = "Jalisco"
+                    elif clave in claves_michoacan:
+                        estado = "Michoacán"
+                    else:
+                        estado = "Desconocido"
+
+                    # Agregar datos al resultado
+                    estacion_data = {
+                        'Clave': clave,
+                        'Estado': estado,
+                        'Latitud': latitud,
+                        'Longitud': longitud,
+                        'Elevación (km)': elevacion  # Agregar elevación
+                    }
+                    estacion_data.update(promedios)
+                    datos_procesados.append(estacion_data)
+
+        return pd.DataFrame(datos_procesados)
+
+
+
+    # Configuración de Streamlit
+    st.title("Análisis de Datos Meteorológicos")
+
+    st.markdown("""
+    <div style="text-align: justify;">
+    <h3>Mapas Meteorológicos del Estado de Colima</h3>
+
+    <p>En esta sección se muestran los mapas meteorológicos para el estado de Colima. Dichos mapas fueron creados combinando datos de estaciones meteorológicas disponibles con modelos para el cálculo de la radiación solar y la corrección por la altura. A continuación se detallan las fuentes:</p>
+
+    <ul>
+      <li><b>Datos Meteorológicos:</b> Los datos de precipitación (medida en milímetros), temperatura (medida en grados Celsius) y evaporación (medida en milímetros) se obtuvieron de la base de datos de estaciones meteorológicas de la 
+      <a href="https://sih.conagua.gob.mx/climas.html" target="_blank">Comisión Nacional del Agua (CONAGUA)</a>.</li>
+      <li><b>Elevación sobre el Nivel del Mar:</b> La elevación sobre el nivel del mar (medida en kilómetros) se obtuvo del 
+      <a href="https://sedac.ciesin.columbia.edu/mapping/ace2/?_ga=2.64821862.877322575.1732493587-819847203.1710446044" target="_blank">Modelo Digital de Elevación Global de la NASA</a>.</li>
+      <li><b>Radiación Solar:</b> Los valores para la radiación en la atmósfera superior se calcularon a partir de las ecuaciones para la radiación solar descritas por el 
+      <a href="https://www.redalyc.org/pdf/4455/445543787010.pdf" target="_blank">modelo de Bristow y Campbell</a>. Para la corrección por la atmósfera se ha utilizado el valor de referencia de un aumento del 12% por cada kilómetro sobre el nivel del mar.</li>
+    </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="text-align: justify;">
+    <p>En el siguiente menú puede seleccionar el mes y año para visualizar los valores promedio de los parámetros climáticos y la radiación solar (si quiere ver el promedio anual, seleccione la opción <b>"Todo el año"</b>). Si desea descargar la base de datos, coloque el cursor en la esquina superior derecha y seleccione la opción de <b>"Descargar como CSV"</b> o presione el botón <b>"Descargar"</b> ubicado debajo de la base de datos.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Directorios de entrada    
+    output_dirs = [output_dir_colima, output_dir_cerca]
+
+    # Obtener años disponibles
+    anos_disponibles = obtener_anos_disponibles(claves, output_dirs)
+    if not anos_disponibles:
+        st.error("No se encontraron datos disponibles.")
+        st.stop()
+
+    # Menú desplegable para seleccionar año y mes
+    ano = st.selectbox("Selecciona el año", options=anos_disponibles)
+    meses = {0: "Todo el año", 1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
+             7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"}    
+    mes = st.selectbox("Selecciona el mes", options=list(meses.keys()), format_func=lambda x: meses[x])
+
+    # Procesar datos seleccionados
+    df_resultado = procesar_datos(ano, mes if mes != 0 else None, claves, output_dirs)
+    df_resultado.columns = df_resultado.columns.str.strip()
+
+    # Parámetros para radiación solar
+    S0 = 1361  # Constante solar (W/m²)
+    Ta = 0.75  # Transmisión atmosférica promedio
+    k = 0.12   # Incremento de radiación por km de altitud
+
+
+    @st.cache_data
+    def calculate_annual_radiation(latitude, altitude):
+        """Calcular radiación solar promedio anual considerando declinación solar y ángulo horario."""
+        total_radiation = 0
+        for day in range(1, 366):
+            # Calcular declinación solar
+            declination = 23.45 * np.sin(np.radians((360 / 365) * (day - 81)))
+            declination_rad = np.radians(declination)
+        
+            # Convertir latitud a radianes
+            latitude_rad = np.radians(latitude)
+        
+            # Calcular ángulo horario del amanecer/atardecer
+            h_s = np.arccos(-np.tan(latitude_rad) * np.tan(declination_rad))
+        
+            # Calcular radiación diaria
+            daily_radiation = (
+                S0 * Ta * (1 + k * altitude) * 
+                (np.cos(latitude_rad) * np.cos(declination_rad) * np.sin(h_s) +
+                 h_s * np.sin(latitude_rad) * np.sin(declination_rad))
+            )
+        
+            total_radiation += max(0, daily_radiation)  # Evitar valores negativos
+
+        return total_radiation / 365  # Promedio anual
+
+
+    @st.cache_data
+    def calculate_monthly_radiation(latitude, altitude, days_in_month):
+        """Calcular radiación solar promedio mensual."""
+        total_radiation = 0
+        for day in range(1, days_in_month + 1):
+            declination = 23.45 * np.sin(np.radians((360 / 365) * (day - 81)))
+            declination_rad = np.radians(declination)
+            latitude_rad = np.radians(latitude)
+            h_s = np.arccos(-np.tan(latitude_rad) * np.tan(declination_rad))
+            daily_radiation = (
+                S0 * Ta * (1 + k * altitude) *
+                (np.cos(latitude_rad) * np.cos(declination_rad) * np.sin(h_s) +
+                 h_s * np.sin(latitude_rad) * np.sin(declination_rad))
+            )
+            total_radiation += max(0, daily_radiation)  # Evitar valores negativos
+        return total_radiation / days_in_month
+
+    # Actualizar el DataFrame con la radiación solar
+    if not df_resultado.empty:
+        radiaciones = []
+        for _, row in df_resultado.iterrows():
+            latitud = row['Latitud']
+            elevacion = row['Elevación (km)']
+            if mes == 0:  # Todo el año
+                radiacion = calculate_annual_radiation(latitud, elevacion)
+            else:  # Mes específico
+                # Días en cada mes (no considera años bisiestos)
+                dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+                dias_mes = dias_por_mes[mes - 1]
+                radiacion = calculate_monthly_radiation(latitud, elevacion, dias_mes)
+            radiaciones.append(radiacion)
+
+        # Agregar la columna de radiación al DataFrame
+        df_resultado['Radiación Solar Promedio (W/m²)'] = radiaciones
+
+
+    # Parámetros para corrección
+    gradiente_temperatura = -6.5  # °C/km, gradiente ambiental típico
+
+    # Corregir valores de radiación y temperatura en función de la elevación
+    if not df_resultado.empty:
+        temperaturas_corregidas = []
+        radiaciones_corregidas = []
+
+        for _, row in df_resultado.iterrows():
+            elevacion = row['Elevación (km)']
+
+            # Corregir temperatura media
+            temp_media_original = row['Temperatura Media(ºC)'] if 'Temperatura Media(ºC)' in row else np.nan
+            temp_media_corregida = temp_media_original + (elevacion * gradiente_temperatura) if not pd.isna(temp_media_original) else np.nan
+            temperaturas_corregidas.append(temp_media_corregida)
+
+            # Corregir radiación solar
+            radiacion_original = row['Radiación Solar Promedio (W/m²)'] if 'Radiación Solar Promedio (W/m²)' in row else np.nan
+            radiacion_corregida = radiacion_original * (1 + k * elevacion) if not pd.isna(radiacion_original) else np.nan
+            radiaciones_corregidas.append(radiacion_corregida)
+
+        df_resultado['Radiación Solar Corregida (W/m²)'] = radiaciones_corregidas
+        df_2=df_resultado.copy()
+
+
+    # Mostrar resultados
+    if not df_resultado.empty:
+        st.write(f"Datos procesados para {meses[mes]} del año {ano}:")
+        st.dataframe(df_resultado)
+    else:
+        st.write("No se encontraron datos para el período seleccionado.")
+
+
+    # Determinar el nombre del archivo
+    if mes:  # Si hay un mes seleccionado
+        filename = f"datos_climaticos_para_{mes}_{ano}.csv"    
+    else:  # Si es todo el año
+        filename = f"datos_climaticos_para_{ano}.csv"
+
+    # Botón de descarga
+    csv = df_resultado.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Descargar",
+        data=csv,
+        file_name=filename,
+        mime="text/csv"
+    )
+
+    import plotly.express as px
+    import plotly.graph_objects as go
+    import json
+    import matplotlib as plt
+
+
+    # Definir una escala coolwarm personalizada
+    coolwarm_scale = [
+        [0.0, 'rgb(59,76,192)'],  # Azul oscuro
+        [0.35, 'rgb(116,173,209)'],  # Azul claro
+        [0.5, 'rgb(221,221,221)'],  # Blanco/neutral
+        [0.65, 'rgb(244,109,67)'],  # Naranja claro
+        [1.0, 'rgb(180,4,38)']  # Rojo oscuro
+    ]
+
+    # Crear el esquema de colores 'coolwarm'
+    coolwarm_colorscale = plt.cm.coolwarm(np.linspace(0, 1, 256))
+    coolwarm_colorscale = [
+        [i / 255.0, f"rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})"]
+        for i, (r, g, b, _) in enumerate(coolwarm_colorscale)
+    ]
+
+    # Cargar el archivo GeoJSON (Colima.JSON) para referencia del mapa
+    try:
+        with open('Colima.json', 'r', encoding='latin-1') as file:
+            colima_geojson = json.load(file)
     except Exception as e:
-        raise RuntimeError(f"Error al calcular elevación para lat={lat}, lon={lon}: {e}")
+        st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
+        st.stop()
 
-@st.cache_data
-def procesar_datos(ano, mes, claves, output_dirs):
-    datos_procesados = []
+    st.subheader("Mapa con datos de estaciones de la CONAGUA")
 
-    for output_dir in output_dirs:
-        for clave in claves:
-            archivo = os.path.join(output_dir, f"{clave}_df.csv")
-            if os.path.exists(archivo):
-                df = pd.read_csv(archivo) #aqui se agrego un eliminador de espacios
-                df.columns = df.columns.str.strip()
-                df['Fecha'] = pd.to_datetime(df['Fecha'], format='%Y/%m/%d', errors='coerce')
-                df['ano'] = df['Fecha'].dt.year
-                df['mes'] = df['Fecha'].dt.month
+    st.markdown("""
+    <div style="text-align: justify;">
+    <p>En la siguiente gráfica se muestran las estaciones del estado de Colima y zonas circundantes que registraron datos climáticos para el periodo de tiempo seleccionado (los colores representan una aproximación al valor registrado por cada estación).</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-                # Filtrar por año y mes
-                df_filtrado = df[df['ano'] == ano]
-                if mes and mes != 0:  # Si se selecciona un mes específico
-                    df_filtrado = df_filtrado[df_filtrado['mes'] == mes]
+    import plotly.io as pio
 
-                # Si no hay datos para el año (o mes) seleccionado, omitir esta estación
-                if df_filtrado.empty:
-                    continue
+    # Mostrar mapa con estaciones
+    if not df_resultado.empty:
+        # Menú desplegable para seleccionar la columna numérica a graficar
+        columna_grafico = st.selectbox("Selecciona la columna para el color del mapa", options=columnas_numericas)
 
-                # Limpiar columnas numéricas y calcular promedios
-                promedios = {}
-                for col in columnas_numericas:
-                    if col in df_filtrado.columns:
-                        df_filtrado[col] = pd.to_numeric(df_filtrado[col].astype(str).str.replace('[^0-9.]', '', regex=True), errors='coerce')
-                        promedios[col] = df_filtrado[col].mean()
-
-                # Obtener latitud y longitud
-                if 'Latitud' in df.columns and 'Longitud' in df.columns:
-                    latitud = df['Latitud'].iloc[0]
-                    longitud = df['Longitud'].iloc[0]
-                    elevacion = obtener_elevacion(latitud, longitud, tile_size, elevation_data)
+        # Filtrar estaciones con valores NaN en la columna seleccionada
+        if columna_grafico in df_resultado.columns:
+            df_filtrado = df_resultado.dropna(subset=[columna_grafico])
+            #df_filtrado = df_resultado
+            if not df_filtrado.empty:
+                #c
+                # Ajustar el título dinámicamente según la selección de mes
+                if mes == 0:
+                    titulo_mes = "Promedio Anual"
                 else:
-                    latitud = np.nan
-                    longitud = np.nan
-                    elevacion = np.nan
+                    titulo_mes = f"Mes {mes}"
 
-                # Determinar el estado de la estación
-                if clave in claves_colima:
-                    estado = "Colima"
-                elif clave in claves_jalisco:
-                    estado = "Jalisco"
-                elif clave in claves_michoacan:
-                    estado = "Michoacán"
-                else:
-                    estado = "Desconocido"
+                # Crear el mapa base con las estaciones
+                fig = px.scatter_mapbox(
+                    df_filtrado,
+                    lat="Latitud",
+                    lon="Longitud",
+                    color=columna_grafico,
+                    hover_name="Clave",
+                    hover_data=["Estado", columna_grafico],
+                    title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+                    mapbox_style="carto-positron",
+                    center={"lat": 19.0, "lon": -104.0},  # Ajusta el centro del mapa según sea necesario
+                    zoom=8,
+                    width=1000,
+                    height=600,
+                    color_continuous_scale=coolwarm_colorscale   # Usar escala coolwarm personalizada
+                    )
 
-                # Agregar datos al resultado
-                estacion_data = {
-                    'Clave': clave,
-                    'Estado': estado,
-                    'Latitud': latitud,
-                    'Longitud': longitud,
-                    'Elevación (km)': elevacion  # Agregar elevación
-                }
-                estacion_data.update(promedios)
-                datos_procesados.append(estacion_data)
+                    # Configuración del diseño del gráfico
+                fig.update_layout(
+                    title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
+                    margin=dict(l=0, r=0, t=50, b=0)
+                    )
 
-    return pd.DataFrame(datos_procesados)
-
-
-
-# Configuración de Streamlit
-st.title("Análisis de Datos Meteorológicos")
-
-st.markdown("""
-<div style="text-align: justify;">
-<h3>Mapas Meteorológicos del Estado de Colima</h3>
-
-<p>En esta sección se muestran los mapas meteorológicos para el estado de Colima. Dichos mapas fueron creados combinando datos de estaciones meteorológicas disponibles con modelos para el cálculo de la radiación solar y la corrección por la altura. A continuación se detallan las fuentes:</p>
-
-<ul>
-  <li><b>Datos Meteorológicos:</b> Los datos de precipitación (medida en milímetros), temperatura (medida en grados Celsius) y evaporación (medida en milímetros) se obtuvieron de la base de datos de estaciones meteorológicas de la 
-  <a href="https://sih.conagua.gob.mx/climas.html" target="_blank">Comisión Nacional del Agua (CONAGUA)</a>.</li>
-  <li><b>Elevación sobre el Nivel del Mar:</b> La elevación sobre el nivel del mar (medida en kilómetros) se obtuvo del 
-  <a href="https://sedac.ciesin.columbia.edu/mapping/ace2/?_ga=2.64821862.877322575.1732493587-819847203.1710446044" target="_blank">Modelo Digital de Elevación Global de la NASA</a>.</li>
-  <li><b>Radiación Solar:</b> Los valores para la radiación en la atmósfera superior se calcularon a partir de las ecuaciones para la radiación solar descritas por el 
-  <a href="https://www.redalyc.org/pdf/4455/445543787010.pdf" target="_blank">modelo de Bristow y Campbell</a>. Para la corrección por la atmósfera se ha utilizado el valor de referencia de un aumento del 12% por cada kilómetro sobre el nivel del mar.</li>
-</ul>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<div style="text-align: justify;">
-<p>En el siguiente menú puede seleccionar el mes y año para visualizar los valores promedio de los parámetros climáticos y la radiación solar (si quiere ver el promedio anual, seleccione la opción <b>"Todo el año"</b>). Si desea descargar la base de datos, coloque el cursor en la esquina superior derecha y seleccione la opción de <b>"Descargar como CSV"</b> o presione el botón <b>"Descargar"</b> ubicado debajo de la base de datos.</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Directorios de entrada
-output_dirs = [output_dir_colima, output_dir_cerca]
-
-# Obtener años disponibles
-anos_disponibles = obtener_anos_disponibles(claves, output_dirs)
-if not anos_disponibles:
-    st.error("No se encontraron datos disponibles.")
-    st.stop()
-
-# Menú desplegable para seleccionar año y mes
-ano = st.selectbox("Selecciona el año", options=anos_disponibles)
-meses = {0: "Todo el año", 1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo", 6: "Junio",
-         7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"}
-mes = st.selectbox("Selecciona el mes", options=list(meses.keys()), format_func=lambda x: meses[x])
-
-# Procesar datos seleccionados
-df_resultado = procesar_datos(ano, mes if mes != 0 else None, claves, output_dirs)
-df_resultado.columns = df_resultado.columns.str.strip()
-
-# Parámetros para radiación solar
-S0 = 1361  # Constante solar (W/m²)
-Ta = 0.75  # Transmisión atmosférica promedio
-k = 0.12   # Incremento de radiación por km de altitud
-
-
-@st.cache_data
-def calculate_annual_radiation(latitude, altitude):
-    """Calcular radiación solar promedio anual considerando declinación solar y ángulo horario."""
-    total_radiation = 0
-    for day in range(1, 366):
-        # Calcular declinación solar
-        declination = 23.45 * np.sin(np.radians((360 / 365) * (day - 81)))
-        declination_rad = np.radians(declination)
-        
-        # Convertir latitud a radianes
-        latitude_rad = np.radians(latitude)
-        
-        # Calcular ángulo horario del amanecer/atardecer
-        h_s = np.arccos(-np.tan(latitude_rad) * np.tan(declination_rad))
-        
-        # Calcular radiación diaria
-        daily_radiation = (
-            S0 * Ta * (1 + k * altitude) * 
-            (np.cos(latitude_rad) * np.cos(declination_rad) * np.sin(h_s) +
-             h_s * np.sin(latitude_rad) * np.sin(declination_rad))
-        )
-        
-        total_radiation += max(0, daily_radiation)  # Evitar valores negativos
-
-    return total_radiation / 365  # Promedio anual
-
-
-@st.cache_data
-def calculate_monthly_radiation(latitude, altitude, days_in_month):
-    """Calcular radiación solar promedio mensual."""
-    total_radiation = 0
-    for day in range(1, days_in_month + 1):
-        declination = 23.45 * np.sin(np.radians((360 / 365) * (day - 81)))
-        declination_rad = np.radians(declination)
-        latitude_rad = np.radians(latitude)
-        h_s = np.arccos(-np.tan(latitude_rad) * np.tan(declination_rad))
-        daily_radiation = (
-            S0 * Ta * (1 + k * altitude) *
-            (np.cos(latitude_rad) * np.cos(declination_rad) * np.sin(h_s) +
-             h_s * np.sin(latitude_rad) * np.sin(declination_rad))
-        )
-        total_radiation += max(0, daily_radiation)  # Evitar valores negativos
-    return total_radiation / days_in_month
-
-# Actualizar el DataFrame con la radiación solar
-if not df_resultado.empty:
-    radiaciones = []
-    for _, row in df_resultado.iterrows():
-        latitud = row['Latitud']
-        elevacion = row['Elevación (km)']
-        if mes == 0:  # Todo el año
-            radiacion = calculate_annual_radiation(latitud, elevacion)
-        else:  # Mes específico
-            # Días en cada mes (no considera años bisiestos)
-            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-            dias_mes = dias_por_mes[mes - 1]
-            radiacion = calculate_monthly_radiation(latitud, elevacion, dias_mes)
-        radiaciones.append(radiacion)
-
-    # Agregar la columna de radiación al DataFrame
-    df_resultado['Radiación Solar Promedio (W/m²)'] = radiaciones
-
-
-# Parámetros para corrección
-gradiente_temperatura = -6.5  # °C/km, gradiente ambiental típico
-
-# Corregir valores de radiación y temperatura en función de la elevación
-if not df_resultado.empty:
-    temperaturas_corregidas = []
-    radiaciones_corregidas = []
-
-    for _, row in df_resultado.iterrows():
-        elevacion = row['Elevación (km)']
-
-        # Corregir temperatura media
-        temp_media_original = row['Temperatura Media(ºC)'] if 'Temperatura Media(ºC)' in row else np.nan
-        temp_media_corregida = temp_media_original + (elevacion * gradiente_temperatura) if not pd.isna(temp_media_original) else np.nan
-        temperaturas_corregidas.append(temp_media_corregida)
-
-        # Corregir radiación solar
-        radiacion_original = row['Radiación Solar Promedio (W/m²)'] if 'Radiación Solar Promedio (W/m²)' in row else np.nan
-        radiacion_corregida = radiacion_original * (1 + k * elevacion) if not pd.isna(radiacion_original) else np.nan
-        radiaciones_corregidas.append(radiacion_corregida)
-
-    df_resultado['Radiación Solar Corregida (W/m²)'] = radiaciones_corregidas
-    df_2=df_resultado.copy()
-
-
-# Mostrar resultados
-if not df_resultado.empty:
-    st.write(f"Datos procesados para {meses[mes]} del año {ano}:")
-    st.dataframe(df_resultado)
-else:
-    st.write("No se encontraron datos para el período seleccionado.")
-
-
-# Determinar el nombre del archivo
-if mes:  # Si hay un mes seleccionado
-    filename = f"datos_climaticos_para_{mes}_{ano}.csv"
-else:  # Si es todo el año
-    filename = f"datos_climaticos_para_{ano}.csv"
-
-# Botón de descarga
-csv = df_resultado.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Descargar",
-    data=csv,
-    file_name=filename,
-    mime="text/csv"
-)
-
-import plotly.express as px
-import plotly.graph_objects as go
-import json
-import matplotlib as plt
-
-
-# Definir una escala coolwarm personalizada
-coolwarm_scale = [
-    [0.0, 'rgb(59,76,192)'],  # Azul oscuro
-    [0.35, 'rgb(116,173,209)'],  # Azul claro
-    [0.5, 'rgb(221,221,221)'],  # Blanco/neutral
-    [0.65, 'rgb(244,109,67)'],  # Naranja claro
-    [1.0, 'rgb(180,4,38)']  # Rojo oscuro
-]
-
-# Crear el esquema de colores 'coolwarm'
-coolwarm_colorscale = plt.cm.coolwarm(np.linspace(0, 1, 256))
-coolwarm_colorscale = [
-    [i / 255.0, f"rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})"]
-    for i, (r, g, b, _) in enumerate(coolwarm_colorscale)
-]
-
-# Cargar el archivo GeoJSON (Colima.JSON) para referencia del mapa
-try:
-    with open('Colima.json', 'r', encoding='latin-1') as file:
-        colima_geojson = json.load(file)
-except Exception as e:
-    st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
-    st.stop()
-
-st.subheader("Mapa con datos de estaciones de la CONAGUA")
-
-st.markdown("""
-<div style="text-align: justify;">
-<p>En la siguiente gráfica se muestran las estaciones del estado de Colima y zonas circundantes que registraron datos climáticos para el periodo de tiempo seleccionado (los colores representan una aproximación al valor registrado por cada estación).</p>
-</div>
-""", unsafe_allow_html=True)
-
-import plotly.io as pio
-
-# Mostrar mapa con estaciones
-if not df_resultado.empty:
-    # Menú desplegable para seleccionar la columna numérica a graficar
-    columna_grafico = st.selectbox("Selecciona la columna para el color del mapa", options=columnas_numericas)
-
-    # Filtrar estaciones con valores NaN en la columna seleccionada
-    if columna_grafico in df_resultado.columns:
-        df_filtrado = df_resultado.dropna(subset=[columna_grafico])
-        #df_filtrado = df_resultado
-        if not df_filtrado.empty:
-            #c
-            # Ajustar el título dinámicamente según la selección de mes
-            if mes == 0:
-                titulo_mes = "Promedio Anual"
-            else:
-                titulo_mes = f"Mes {mes}"
-
-            # Crear el mapa base con las estaciones
-            fig = px.scatter_mapbox(
-                df_filtrado,
-                lat="Latitud",
-                lon="Longitud",
-                color=columna_grafico,
-                hover_name="Clave",
-                hover_data=["Estado", columna_grafico],
-                title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
-                mapbox_style="carto-positron",
-                center={"lat": 19.0, "lon": -104.0},  # Ajusta el centro del mapa según sea necesario
-                zoom=8,
-                width=1000,
-                height=600,
-                color_continuous_scale=coolwarm_colorscale   # Usar escala coolwarm personalizada
-                )
-
-                # Configuración del diseño del gráfico
-            fig.update_layout(
-                title=f"Mapa de estaciones en Colima y alrededores ({columna_grafico.strip()} para el año {ano}, {titulo_mes})",
-                margin=dict(l=0, r=0, t=50, b=0)
-                )
-
-            # Cambiar tamaño de los puntos
-            fig.update_traces(marker=dict(size=12))  # Ajusta el tamaño como desees
+                # Cambiar tamaño de los puntos
+                fig.update_traces(marker=dict(size=12))  # Ajusta el tamaño como desees
     
-            # Añadir los polígonos de los municipios como trazas adicionales
-            for feature in colima_geojson["features"]:
-                geometry = feature["geometry"]
-                properties = feature["properties"]
+                # Añadir los polígonos de los municipios como trazas adicionales
+                for feature in colima_geojson["features"]:
+                    geometry = feature["geometry"]
+                    properties = feature["properties"]
 
-                # Excluir islas si es necesario
-                if "isla" not in properties.get("name", "").lower():
-                    if geometry["type"] == "Polygon":
-                        for coordinates in geometry["coordinates"]:
-                            x_coords, y_coords = zip(*coordinates)
-                            fig.add_trace(
-                                go.Scattermapbox(
-                                    lon=x_coords,
-                                    lat=y_coords,
-                                    mode="lines",
-                                    line=dict(color="black", width=2),
-                                    showlegend=False
-                                )
-                            )
-                    elif geometry["type"] == "MultiPolygon":
-                        for polygon in geometry["coordinates"]:
-                            for coordinates in polygon:
+                    # Excluir islas si es necesario
+                    if "isla" not in properties.get("name", "").lower():
+                        if geometry["type"] == "Polygon":
+                            for coordinates in geometry["coordinates"]:
                                 x_coords, y_coords = zip(*coordinates)
                                 fig.add_trace(
                                     go.Scattermapbox(
@@ -667,18 +654,31 @@ if not df_resultado.empty:
                                         showlegend=False
                                     )
                                 )
+                        elif geometry["type"] == "MultiPolygon":
+                            for polygon in geometry["coordinates"]:
+                                for coordinates in polygon:
+                                    x_coords, y_coords = zip(*coordinates)
+                                    fig.add_trace(
+                                        go.Scattermapbox(
+                                            lon=x_coords,
+                                            lat=y_coords,
+                                            mode="lines",
+                                            line=dict(color="black", width=2),
+                                            showlegend=False
+                                        )
+                                    )
 
 
             
-                # Mostrar el mapa
-            st.plotly_chart(fig, use_container_width=True)
+                    # Mostrar el mapa
+                st.plotly_chart(fig, use_container_width=True)
 
+            else:
+                st.warning(f"No hay estaciones con datos válidos en la columna '{columna_grafico}'.")
         else:
-            st.warning(f"No hay estaciones con datos válidos en la columna '{columna_grafico}'.")
+            st.warning("La columna seleccionada no está disponible en el DataFrame.")
     else:
-        st.warning("La columna seleccionada no está disponible en el DataFrame.")
-else:
-    st.write("No hay datos disponibles para mostrar en el mapa.")
+        st.write("No hay datos disponibles para mostrar en el mapa.")
 
 #
 #import streamlit as st
