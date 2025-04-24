@@ -3058,7 +3058,7 @@ elif seccion == "Análisis con Prophet":
     except Exception as e:
         st.error(f"Error en el flujo de procesamiento: {e}")
 
-elif secccion == "Trayectoria Solar":
+elif seccion == "Trayectoria Solar":
         import math
         import numpy as np
         import pandas as pd
