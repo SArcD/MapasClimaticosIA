@@ -7,8 +7,8 @@ import os  # Asegurar la importación de os
 import requests
 import streamlit as st
 
-    # Listas de claves
-    claves_colima = [
+# Listas de claves
+claves_colima = [
         "C06001", "C06049", "C06076", "C06074", "C06006", "C06040", "C06010", "C06015",
         "C06024", "C06043", "C06071", "C06062", "C06014", "ARMCM", "C06008", "C06075",
         "C06056", "C06020", "C06002", "C06009", "C06041", "C06021", "C06073", "C06012",
@@ -21,7 +21,7 @@ import streamlit as st
         "IXHCM", "ACMCM", "CMDCM", "MNZCM", "SNTCM", "MINCM", "CLRCM", "CLLCM", 
         "CDOCM", "LDACM", "DJLCM", "TCMCM"]
 
-    claves_colima_cerca = [
+claves_colima_cerca = [
         "C14008", "C14018", "MRZJL", "C14019", "C14046", "C14390", "ELCJL", "TMLJL", "C14027", "CHFJL",
         "C14148", "C14112", "C14029", "C14094", "C14043", "C14343", "C14050", "BBAJL", "C14051", "C14315",
         "VIHJL", "C14348", "C14011", "C14042", "C14086", "C14099", "C14336", "C14109", "TRJCM", "C14031",
@@ -32,10 +32,10 @@ import streamlit as st
         "C14120", "C14352", "C14030", "CGZJL"
     ]
 
-    claves_jalisco = {'BBAJL', 'C14008', 'C14018', 'C14019', 'C14027', 'C14029', 'C14043',
+claves_jalisco = {'BBAJL', 'C14008', 'C14018', 'C14019', 'C14027', 'C14029', 'C14043',
                       'C14046', 'C14050', 'C14051', 'C14094', 'C14112', 'C14148', 'C14343',
                       'C14390', 'CHFJL', 'ELCJL', 'MRZJL', 'TMLJL'}
-    claves_michoacan = {'ALCJL', 'C14005', 'C14007', 'C14011', 'C14022', 'C14024', 'C14030',
+claves_michoacan = {'ALCJL', 'C14005', 'C14007', 'C14011', 'C14022', 'C14024', 'C14030',
                         'C14031', 'C14034', 'C14042', 'C14052', 'C14067', 'C14079', 'C14086',
                         'C14095', 'C14099', 'C14109', 'C14117', 'C14118', 'C14120', 'C14141',
                         'C14142', 'C14151', 'C14155', 'C14158', 'C14166', 'C14170', 'C14184',
@@ -45,14 +45,14 @@ import streamlit as st
                         'RTOJL', 'SLTJL', 'TAPJL', 'TRJCM', 'VIHJL'}
 
 
-    # Combinar todas las claves
-    claves = claves_colima + claves_colima_cerca
+# Combinar todas las claves
+claves = claves_colima + claves_colima_cerca
 
-    # Columnas numéricas disponibles
-    columnas_numericas = [
-        'Precipitación(mm)', 'Temperatura Media(ºC)', 
-        'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
-    ]
+# Columnas numéricas disponibles
+columnas_numericas = [
+    'Precipitación(mm)', 'Temperatura Media(ºC)', 
+    'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
+]
 
 
 
