@@ -227,8 +227,9 @@ elif seccion == "Mapas Climatológicos":
     if dimensiones_posibles:
         # Permitir que el usuario seleccione dimensiones
         seleccion = st.selectbox("Seleccione las dimensiones para el archivo:", dimensiones_posibles)
-        elevation_data = read_ace2(file_path, seleccion)
-
+        st.session_state.elevation_data = read_ace2(file_path, seleccion)
+        #elevation_data = read_ace2(file_path, seleccion)
+        elevation_data = st.session_state.elevation_data
         if elevation_data is not None:
             tile_size = elevation_data.shape
             st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
@@ -2469,6 +2470,7 @@ elif seccion == "Análisis con Prophet":
     from scipy.spatial import cKDTree
     import streamlit as st
     output_dirs = st.session_state.output_dirs
+    elevation_data = st.session_state.elevation_data
 
     @st.cache_data
     def recolectar_coordenadas_nombres(claves, output_dirs):
