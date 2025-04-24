@@ -2473,7 +2473,7 @@ elif seccion == "Análisis con Prophet":
     import streamlit as st
     output_dirs = st.session_state.output_dirs
     elevation_data = st.session_state.elevation_data
-    tile_size= st.session_state.tile_size
+    tile_size = st.session_state.tile_size
     @st.cache_data
     def recolectar_coordenadas_nombres(claves, output_dirs):
         """
