@@ -66,7 +66,7 @@ GITHUB_TOKEN = "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"
 # Sidebar para navegación
 seccion = st.sidebar.radio(
     "Selecciona una sección:",
-    ["Descripción", "Mapas Climatológicos", "Registro de datos históricos", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
+    ["Descripción", "Mapas Climatológicos", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
 )
 
 if seccion == "Descripción":
@@ -2164,7 +2164,7 @@ elif seccion == "Mapas Climatológicos":
 
     #############################################################################
 
-elif seccion == "Registro de datos históricos":
+#elif seccion == "Registro de datos históricos":
     claves_colima = st.session_state.claves_colima
 
     # Parámetro a graficar
