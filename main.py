@@ -2468,6 +2468,7 @@ elif seccion == "Análisis con Prophet":
     import numpy as np
     from scipy.spatial import cKDTree
     import streamlit as st
+    output_dirs = st.session_state.output_dirs
 
     @st.cache_data
     def recolectar_coordenadas_nombres(claves, output_dirs):
