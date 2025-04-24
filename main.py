@@ -2901,96 +2901,85 @@ try:
 
                         import pandas as pd
                         import numpy as np
-                        import matplotlib.pyplot as plt
                         from statsmodels.tsa.seasonal import STL
                         from scipy.fft import fft, fftfreq
-
-                        # Simular una serie temporal para radiación solar anual
-                        # Este bloque asumirá que tienes un DataFrame como df_radiacion_anual con columnas: 'Año' y 'Radiación Promedio Anual (W/m²)'
+                        import plotly.graph_objects as go
 
                         # Función para aplicar STL y análisis de Fourier
                         def descomposicion_y_fft(df, columna_valor='Radiación Promedio Anual (W/m²)'):
-                            # Asegurar orden temporal
                             df = df.sort_values('Año').reset_index(drop=True)
 
-                            # Crear una serie temporal con índice de años
-                            #serie = pd.Series(df[columna_valor].values, index=pd.PeriodIndex(df['Año'], freq='Y'))
+                            # Crear índice de fechas con frecuencia anual
+                            serie = pd.Series(df[columna_valor].values,
+                                              index=pd.date_range(start=f"{df['Año'].min()}-01-01", periods=len(df), freq='Y'))
 
-                            # Aplicar STL (descomposición robusta)
-                            #stl = STL(serie, seasonal=7, robust=True)
-                            serie = pd.Series(df[columna_valor].values, index=pd.date_range(start=f"{df['Año'].min()}-01-01", periods=len(df), freq='Y'))
-
-                            # Usamos un periodo estacional de 11 si buscamos ciclos solares
                             stl = STL(serie, period=11, robust=True)
-
-                            
                             resultado = stl.fit()
 
-                            # FFT sobre la tendencia (podría hacerse sobre la serie completa también)
-                            tendencia = resultado.trend.dropna().values
+                            # FFT sobre la componente de residuo
                             residual = resultado.resid.dropna().values
                             n = len(residual)
                             fft_vals = np.abs(fft(residual - np.mean(residual)))
+                            fft_freqs = fftfreq(n, d=1)
 
-                            
-                            #n = len(tendencia)
-                            #fft_vals = np.abs(fft(tendencia - np.mean(tendencia)))
-                            fft_freqs = fftfreq(n, d=1)  # d=1 año entre puntos
-
-                            # Filtrar solo frecuencias positivas
                             mask = fft_freqs > 0
                             frecuencias = fft_freqs[mask]
                             amplitudes = fft_vals[mask]
-    
-                            # Convertir a periodo (años) para buscar cerca de 11 años
                             periodos = 1 / frecuencias
 
-                            # Crear DataFrame de espectro
                             espectro = pd.DataFrame({'Periodo (años)': periodos, 'Amplitud': amplitudes})
-
                             return resultado, espectro
 
-
-                        #estacion_objetivo = st.selectbox("Selecciona una estación para análisis FFT", df_consolidado_imputado['Clave'].unique())
+                        # Ejecutar análisis
                         estacion_objetivo = estacion_seleccionada
                         df_radiacion_anual = (
                             df_consolidado_imputado[df_consolidado_imputado['Clave'] == estacion_objetivo]
-                            .groupby(df_consolidado_imputado['Fecha'].dt.year)
-                            ['Radiación Solar Corregida (W/m²)']
+                            .groupby(df_consolidado_imputado['Fecha'].dt.year)['Radiación Solar Corregida (W/m²)']
                             .mean()
                             .reset_index()
                             .rename(columns={'Fecha': 'Año', 'Radiación Solar Corregida (W/m²)': 'Radiación Promedio Anual (W/m²)'})
                         )
-                        # Ejecutar descomposición y FFT
+
                         resultado_stl, espectro_fft = descomposicion_y_fft(df_radiacion_anual)
 
+                        # === Plotly: Tendencia STL ===
                         st.subheader("Tendencia de la Radiación Solar Anual")
-                        fig_tendencia, ax1 = plt.subplots()
-                        ax1.plot(resultado_stl.trend.index.year, resultado_stl.trend, color='darkgreen')
-                        ax1.set_title("Tendencia (STL)")
-                        ax1.set_xlabel("Año")
-                        ax1.set_ylabel("W/m²")
-                        ax1.set_ylim(df_radiacion_anual['Radiación Promedio Anual (W/m²)'].quantile(0.05), 
-                        df_radiacion_anual['Radiación Promedio Anual (W/m²)'].quantile(0.95))
+                        fig_stl = go.Figure()
+                        fig_stl.add_trace(go.Scatter(
+                            x=resultado_stl.trend.index.year,
+                            y=resultado_stl.trend,
+                            mode='lines',
+                            name='Tendencia',
+                            line=dict(color='green')
+                        ))
+                        fig_stl.update_layout(
+                            title='Tendencia (STL)',
+                            xaxis_title='Año',
+                            yaxis_title='W/m²',
+                            height=400,
+                            plot_bgcolor='white'
+                        )
+                        st.plotly_chart(fig_stl)
 
-                        st.pyplot(fig_tendencia)
-
+                        # === Plotly: Espectro de Fourier ===
                         st.subheader("Espectro de Frecuencia (Fourier)")
-                        fig_fft, ax2 = plt.subplots()
-                        ax2.plot(espectro_fft['Periodo (años)'], espectro_fft['Amplitud'], color='purple')
-                        ax2.set_xlim(0, 30)
-                        ax2.set_xlabel("Periodo (años)")
-                        ax2.set_ylabel("Amplitud")
-                        ax2.set_title("Análisis de Periodicidad (Fourier)")
-                        st.pyplot(fig_fft)
-
-
-
-
-
-
-
-                    
+                        fig_fft = go.Figure()
+                        fig_fft.add_trace(go.Scatter(
+                            x=espectro_fft['Periodo (años)'],
+                            y=espectro_fft['Amplitud'],
+                            mode='lines+markers',
+                            line=dict(color='purple'),
+                            name='Fourier'
+                        ))
+                        fig_fft.update_layout(
+                            title='Análisis de Periodicidad (Fourier)',
+                            xaxis_title='Periodo (años)',
+                            yaxis_title='Amplitud',
+                            xaxis_range=[0, 30],
+                            height=400,
+                            plot_bgcolor='white'
+                        )
+                        st.plotly_chart(fig_fft)
 
                     except Exception as e:
                         st.error(f"Ocurrió un error al entrenar el modelo Prophet: {e}")
