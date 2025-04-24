@@ -278,6 +278,9 @@ elif seccion == "Mapas Climatológicos":
                         'RTOJL', 'SLTJL', 'TAPJL', 'TRJCM', 'VIHJL'}
 
 
+
+    st.session_state.claves_colima = claves_colima
+
     # Combinar todas las claves
     claves = claves_colima + claves_colima_cerca
 
@@ -2162,6 +2165,7 @@ elif seccion == "Mapas Climatológicos":
     #############################################################################
 
 elif seccion == "Registro de datos históricos":
+    claves_colima = st.session_state.claves_colima
 
     # Parámetro a graficar
     parametro = st.selectbox(
