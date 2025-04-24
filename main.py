@@ -17,9 +17,14 @@ GITHUB_TOKEN = "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"
 # Sidebar para navegación
 seccion = st.sidebar.radio(
     "Selecciona una sección:",
-    ["Descripción", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
+    ["Descripción", "Mapas Climatológicos", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
 )
 
+if seccion == "Descripción":
+    st.title("Descripción general")
+    st.write("Aquí puedes poner una introducción, descripción del proyecto o del dataset.")
+
+elif seccion == "Mapas Climatológicos"
 
 
 # URL base del repositorio en GitHub
