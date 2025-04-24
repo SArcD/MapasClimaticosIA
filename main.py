@@ -231,7 +231,9 @@ elif seccion == "Mapas Climatológicos":
         #elevation_data = read_ace2(file_path, seleccion)
         elevation_data = st.session_state.elevation_data
         if elevation_data is not None:
-            tile_size = elevation_data.shape
+            st.session_state.tile_size = elevation_data.shape    
+            #tile_size = elevation_data.shape
+            tile_size = st.session_state.tile_size
             st.success(f"Archivo procesado correctamente con dimensiones: {tile_size}.")
     else:
         st.error("No se pudieron determinar dimensiones válidas para el archivo.")
@@ -2471,7 +2473,7 @@ elif seccion == "Análisis con Prophet":
     import streamlit as st
     output_dirs = st.session_state.output_dirs
     elevation_data = st.session_state.elevation_data
-
+    tile_size= st.session_state.tile_size
     @st.cache_data
     def recolectar_coordenadas_nombres(claves, output_dirs):
         """
