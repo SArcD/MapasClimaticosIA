@@ -17,7 +17,7 @@ GITHUB_TOKEN = "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"
 # Sidebar para navegación
 seccion = st.sidebar.radio(
     "Selecciona una sección:",
-    ["Descripción", "Mapas Climatológicos", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
+    ["Descripción", "Mapas Climatológicos", "Registro de datos históricos", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
 )
 
 if seccion == "Descripción":
@@ -2045,354 +2045,342 @@ elif seccion == "Mapas Climatológicos":
         st.write("No hay datos disponibles.")
 
 
-# Nueva sección para cálculo de interpolación en un punto específico
-st.subheader("Interpolación de parámetros en un punto específico")
+    # Nueva sección para cálculo de interpolación en un punto específico
+    st.subheader("Interpolación de parámetros en un punto específico")
 
-st.markdown("""
-<div style="text-align: justify;">
-<p>En esta sección, puede ingresar las coordenadas de un lugar (latitud y longitud) o seleccionar una de las capitales municipales de Colima. El sistema calculará los valores interpolados para el parámetro seleccionado utilizando cada uno de los métodos de interpolación disponibles.</p>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: justify;">
+    <p>En esta sección, puede ingresar las coordenadas de un lugar (latitud y longitud) o seleccionar una de las capitales municipales de Colima. El sistema calculará los valores interpolados para el parámetro seleccionado utilizando cada uno de los métodos de interpolación disponibles.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# Opciones de entrada
-opcion_punto = st.radio(
-    "Seleccione la forma de definir el punto:",
-    options=["Ingresar coordenadas", "Seleccionar capital municipal"]
-)
-
-# Diccionario con las capitales municipales y sus coordenadas
-capitales_municipales = {
-    "Colima": (19.2433, -103.7247),
-    "Villa de Álvarez": (19.2673, -103.7377),
-    "Manzanillo": (19.0561, -104.3188),
-    "Tecomán": (18.9092, -103.8770),
-    "Comala": (19.3278, -103.7578),
-    "Coquimatlán": (19.1801, -103.8181),
-    "Armería": (18.9398, -103.9632),
-    "Minatitlán": (19.3830, -104.0475),
-    "Cuauhtémoc": (19.2363, -103.6618),
-    "Ixtlahuacán": (18.8955, -103.7260)
-}
-
-if opcion_punto == "Ingresar coordenadas":
-    latitud_punto = st.number_input("Ingrese la latitud", value=19.0, step=0.01)
-    longitud_punto = st.number_input("Ingrese la longitud", value=-104.0, step=0.01)
-elif opcion_punto == "Seleccionar capital municipal":
-    capital_seleccionada = st.selectbox("Seleccione la capital municipal", options=capitales_municipales.keys())
-    latitud_punto, longitud_punto = capitales_municipales[capital_seleccionada]
-
-# Seleccionar el parámetro y método de interpolación
-parametro_seleccionado = st.selectbox(
-    "Seleccione el parámetro climático",
-    options=columnas_numericas + [
-        "Radiación Solar Promedio (W/m²)",
-        "Radiación Solar Corregida (W/m²)"
-    ]
-)
-
-# Cálculo de valores interpolados
-if st.button("Calcular interpolación"):
-    if not df_resultado.empty:
-        df_filtrado = df_resultado.dropna(subset=[parametro_seleccionado])
-        if not df_filtrado.empty:
-            latitudes = df_filtrado["Latitud"].values
-            longitudes = df_filtrado["Longitud"].values
-            valores = df_filtrado[parametro_seleccionado].values
-
-            # Calcular interpolaciones
-            resultados_interpolacion = []
-
-            # Interpolación Lineal
-            valor_lineal = griddata(
-                (longitudes, latitudes),
-                valores,
-                (longitud_punto, latitud_punto),
-                method="linear"
-            )
-            resultados_interpolacion.append({"Método": "Lineal", "Valor Interpolado": valor_lineal})
-
-            # Interpolación Nearest
-            valor_nearest = griddata(
-                (longitudes, latitudes),
-                valores,
-                (longitud_punto, latitud_punto),
-                method="nearest"
-            )
-            resultados_interpolacion.append({"Método": "Nearest", "Valor Interpolado": valor_nearest})
-
-            # Interpolación IDW
-            valor_idw = idw_interpolation(longitudes, latitudes, valores, longitud_punto, latitud_punto, power=2)
-            resultados_interpolacion.append({"Método": "IDW", "Valor Interpolado": valor_idw})
-
-            # Crear DataFrame con los resultados
-            df_resultados = pd.DataFrame(resultados_interpolacion)
-
-            # Mostrar resultados
-            st.subheader("Resultados de la interpolación")
-            st.dataframe(df_resultados)
-
-            # Descarga de los resultados
-            csv_resultados = df_resultados.to_csv(index=False)
-            st.download_button(
-                label="Descargar resultados como CSV",
-                data=csv_resultados,
-                file_name=f"resultados_interpolacion_{parametro_seleccionado.strip()}.csv",
-                mime="text/csv"
-            )
-        else:
-            st.warning("No hay estaciones válidas para el parámetro seleccionado.")
-    else:
-        st.error("No hay datos disponibles para realizar la interpolación.")
-
-#############################################################################
-
-# Parámetro a graficar
-parametro = st.selectbox(
-    "Selecciona el parámetro para graficar",
-    ['Precipitación(mm)', 'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 
-     'Temperatura Mínima(ºC)', 'Evaporación(mm)'],
-    key="parametro_selectbox"
-)
-
-# Calcular la cantidad de registros válidos por estación para el parámetro seleccionado
-estaciones_datos = {}
-for estacion in claves_colima:
-    archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
-    if os.path.exists(archivo_estacion):
-        try:
-            df_estacion = pd.read_csv(archivo_estacion)
-            #df_estacion = pd.read_csv(archivo_estacion)
-            df_estacion.columns = df_estacion.columns.str.strip()
-
-            df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
-            
-            # Asegurar que el parámetro es numérico
-            if parametro in df_estacion.columns:
-                df_estacion[parametro] = pd.to_numeric(
-                    df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
-                )
-                # Contar solo registros válidos (no vacíos y no cero)
-                registros_validos = df_estacion[parametro][(df_estacion[parametro] > 0)].count()
-                estaciones_datos[estacion] = registros_validos
-            else:
-                estaciones_datos[estacion] = 0
-        except Exception as e:
-            st.warning(f"Error al procesar la estación {estacion}: {e}")
-    else:
-        estaciones_datos[estacion] = 0
-
-# Identificar la estación con más registros válidos
-estacion_max_datos = max(estaciones_datos, key=estaciones_datos.get)
-max_datos = estaciones_datos[estacion_max_datos]
-
-# Definir los rangos de grupos
-rango_100_50 = (max_datos * 0.5, max_datos)
-rango_50_25 = (max_datos * 0.25, max_datos * 0.5)
-rango_menos_25 = (0, max_datos * 0.25)
-
-# Clasificar estaciones en grupos
-grupos_estaciones = {
-    "100% - 50% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_100_50[0] <= datos <= rango_100_50[1]],
-    "50% - 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_50_25[0] <= datos < rango_50_25[1]],
-    "Menos del 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_menos_25[0] <= datos < rango_menos_25[1]],
-}
-
-# Mostrar un resumen de los grupos
-st.subheader("Resumen de las estaciones por cantidad de datos válidos")
-st.write(f"Estación con más registros válidos: {estacion_max_datos} ({max_datos} registros válidos)")
-
-# Menú desplegable para seleccionar el grupo
-grupo_seleccionado = st.selectbox("Selecciona el grupo de estaciones según cantidad de datos válidos", list(grupos_estaciones.keys()), key="grupo_selectbox")
-
-# Filtrar estaciones según el grupo seleccionado
-estaciones_filtradas = grupos_estaciones[grupo_seleccionado]
-
-# Nuevo menú desplegable con estaciones filtradas
-estacion = st.selectbox("Selecciona una estación meteorológica", estaciones_filtradas, key="estacion_filtrada_selectbox")
-
-# Ruta del archivo de la estación seleccionada
-archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
-
-# Leer el archivo CSV de la estación seleccionada
-try:
-    df_estacion = pd.read_csv(archivo_estacion)
-    #df_estacion = pd.read_csv(archivo_estacion)
-    df_estacion.columns = df_estacion.columns.str.strip()
-
-    df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
-    df_estacion['Año'] = df_estacion['Fecha'].dt.year
-    df_estacion['Mes'] = df_estacion['Fecha'].dt.month
-
-    # Asegurar que el parámetro es numérico
-    if parametro in df_estacion.columns:
-        df_estacion[parametro] = pd.to_numeric(
-            df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
-        )
-
-    # Opciones de análisis: anual o mensual
-    analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
-
-    if analisis == "Anual":
-        # Calcular promedios anuales y asegurarse de incluir años con 0 registros
-        all_years = pd.DataFrame({'Año': range(df_estacion['Año'].min(), df_estacion['Año'].max() + 1)})
-        promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
-        promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
-
-        # Combinar con todos los años para incluir años sin datos
-        promedios = all_years.merge(promedios, on='Año', how='left')
-        promedios[f"Promedio de {parametro.strip()}"] = promedios[f"Promedio de {parametro.strip()}"].fillna(0)
-
-        #    Gráfico de barras con espacios para años sin datos
-        st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})")
-        fig = go.Figure()
-
-        # Determinar cuartiles para la escala de colores
-        valores_validos = promedios[f"Promedio de {parametro.strip()}"][promedios[f"Promedio de {parametro.strip()}"] > 0]
-        q1, q2, q3 = valores_validos.quantile([0.25, 0.5, 0.75]).values if not valores_validos.empty else (0, 0, 0)
-
-        # Asignar colores según cuartiles
-        for _, row in promedios.iterrows():
-            color = "rgb(49,130,189)"  # Azul para Q1
-            if row[f"Promedio de {parametro.strip()}"] > q3:
-                color = "rgb(214,39,40)"  # Rojo para Q4
-            elif row[f"Promedio de {parametro.strip()}"] > q2:
-                color = "rgb(255,127,14)"  # Naranja para Q3
-            elif row[f"Promedio de {parametro.strip()}"] > q1:
-                color = "rgb(255,215,0)"  # Amarillo para Q2
-
-            fig.add_trace(go.Bar(
-                x=[row['Año']],
-                y=[row[f"Promedio de {parametro.strip()}"]],
-                marker_color=color,
-                name=f"Año {int(row['Año'])}"
-            ))
-
-        # Configuración del gráfico
-        fig.update_layout(
-            title=f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})",
-            xaxis_title="Año",
-            yaxis_title=f"Promedio de {parametro.strip()}",
-            showlegend=False
-        )
-
-        st.plotly_chart(fig)
-
-    else:
-        # Seleccionar año para análisis mensual
-        ano_seleccionado = st.selectbox(
-            "Selecciona el año",
-            df_estacion['Año'].unique(),
-            key="ano_seleccionado_selectbox"
-        )
-
-        # Filtrar por año seleccionado y calcular promedios mensuales
-        df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
-        all_months = pd.Series(range(1, 13))
-        promedios = df_anual.groupby('Mes')[parametro].mean().reindex(all_months, fill_value=0).reset_index()
-        promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
-
-        # Gráfico de barras
-        st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
-        st.bar_chart(promedios.set_index('Mes'))
-
-except FileNotFoundError:
-    st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
-except Exception as e:
-    st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
-
-columna_grafico = parametro
-import plotly.express as px
-import plotly.graph_objects as go
-
-import plotly.graph_objects as go
-
-# Crear el agrupamiento de estaciones según la cantidad de registros por estación
-agrupamiento_estaciones = {
-    "50-100%": [],
-    "25-50%": [],
-    "0-25%": []
-}
-
-# Calcular el máximo de registros para una estación
-if not df_resultado.empty:
-    max_registros = df_resultado['Clave'].value_counts().max()
-
-    # Crear los grupos
-    for clave, count in df_resultado['Clave'].value_counts().items():
-        if count >= 0.5 * max_registros:
-            agrupamiento_estaciones["50-100%"].append(clave)
-        elif 0.25 * max_registros <= count < 0.5 * max_registros:
-            agrupamiento_estaciones["25-50%"].append(clave)
-        else:
-            agrupamiento_estaciones["0-25%"].append(clave)
-
-# Identificar el grupo de la estación seleccionada
-grupo_seleccionado = None
-for grupo, estaciones in agrupamiento_estaciones.items():
-    if estacion in estaciones:
-        grupo_seleccionado = grupo
-        break
-
-# Verificar si el grupo seleccionado existe y filtrar las estaciones
-if grupo_seleccionado:
-    estaciones_del_grupo = agrupamiento_estaciones[grupo_seleccionado]
-    df_filtrado = df_resultado[df_resultado['Clave'].isin(estaciones_del_grupo)].dropna(subset=["Latitud", "Longitud"])
-else:
-    df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
-
-if not df_filtrado.empty:
-    # Crear una figura base con fondo blanco
-    fig = go.Figure()
-
-    # Añadir las estaciones como puntos
-    fig.add_trace(
-        go.Scatter(
-            x=df_filtrado['Longitud'],
-            y=df_filtrado['Latitud'],
-            mode='markers',
-            marker=dict(size=8, color='blue', symbol='circle'),
-            text=df_filtrado['Clave'],
-            hoverinfo='text',
-            name="Estaciones"
-        )
+    # Opciones de entrada
+    opcion_punto = st.radio(
+        "Seleccione la forma de definir el punto:",
+        options=["Ingresar coordenadas", "Seleccionar capital municipal"]
     )
 
-    # Añadir la estación seleccionada con un símbolo destacado
-    estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
-    if not estacion_seleccionada.empty:
+    # Diccionario con las capitales municipales y sus coordenadas
+    capitales_municipales = {
+        "Colima": (19.2433, -103.7247),
+        "Villa de Álvarez": (19.2673, -103.7377),
+        "Manzanillo": (19.0561, -104.3188),
+        "Tecomán": (18.9092, -103.8770),
+        "Comala": (19.3278, -103.7578),
+        "Coquimatlán": (19.1801, -103.8181),
+        "Armería": (18.9398, -103.9632),
+        "Minatitlán": (19.3830, -104.0475),
+        "Cuauhtémoc": (19.2363, -103.6618),
+        "Ixtlahuacán": (18.8955, -103.7260)
+    }
+
+    if opcion_punto == "Ingresar coordenadas":
+        latitud_punto = st.number_input("Ingrese la latitud", value=19.0, step=0.01)
+        longitud_punto = st.number_input("Ingrese la longitud", value=-104.0, step=0.01)
+    elif opcion_punto == "Seleccionar capital municipal":
+        capital_seleccionada = st.selectbox("Seleccione la capital municipal", options=capitales_municipales.keys())
+        latitud_punto, longitud_punto = capitales_municipales[capital_seleccionada]
+
+    # Seleccionar el parámetro y método de interpolación
+    parametro_seleccionado = st.selectbox(
+        "Seleccione el parámetro climático",
+        options=columnas_numericas + [
+            "Radiación Solar Promedio (W/m²)",
+            "Radiación Solar Corregida (W/m²)"
+        ]
+    )
+
+    # Cálculo de valores interpolados
+    if st.button("Calcular interpolación"):
+        if not df_resultado.empty:
+            df_filtrado = df_resultado.dropna(subset=[parametro_seleccionado])
+            if not df_filtrado.empty:
+                latitudes = df_filtrado["Latitud"].values
+                longitudes = df_filtrado["Longitud"].values
+                valores = df_filtrado[parametro_seleccionado].values
+
+                # Calcular interpolaciones
+                resultados_interpolacion = []
+
+                # Interpolación Lineal
+                valor_lineal = griddata(
+                    (longitudes, latitudes),
+                    valores,
+                    (longitud_punto, latitud_punto),
+                    method="linear"
+                )
+                resultados_interpolacion.append({"Método": "Lineal", "Valor Interpolado": valor_lineal})
+
+                # Interpolación Nearest
+                valor_nearest = griddata(
+                    (longitudes, latitudes),
+                    valores,
+                    (longitud_punto, latitud_punto),
+                    method="nearest"
+                )
+                resultados_interpolacion.append({"Método": "Nearest", "Valor Interpolado": valor_nearest})
+
+                # Interpolación IDW
+                valor_idw = idw_interpolation(longitudes, latitudes, valores, longitud_punto, latitud_punto, power=2)
+                resultados_interpolacion.append({"Método": "IDW", "Valor Interpolado": valor_idw})
+
+                # Crear DataFrame con los resultados
+                df_resultados = pd.DataFrame(resultados_interpolacion)
+
+                # Mostrar resultados
+                st.subheader("Resultados de la interpolación")
+                st.dataframe(df_resultados)
+
+                # Descarga de los resultados
+                csv_resultados = df_resultados.to_csv(index=False)
+                st.download_button(
+                    label="Descargar resultados como CSV",
+                    data=csv_resultados,
+                    file_name=f"resultados_interpolacion_{parametro_seleccionado.strip()}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.warning("No hay estaciones válidas para el parámetro seleccionado.")
+        else:
+            st.error("No hay datos disponibles para realizar la interpolación.")
+
+    #############################################################################
+
+elif seccion == "Registro de datos históricos":
+
+    # Parámetro a graficar
+    parametro = st.selectbox(
+        "Selecciona el parámetro para graficar",
+        ['Precipitación(mm)', 'Temperatura Media(ºC)', 'Temperatura Máxima(ºC)', 
+         'Temperatura Mínima(ºC)', 'Evaporación(mm)'],
+        key="parametro_selectbox"
+    )
+
+    # Calcular la cantidad de registros válidos por estación para el parámetro seleccionado
+    estaciones_datos = {}
+    for estacion in claves_colima:
+        archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
+        if os.path.exists(archivo_estacion):
+            try:
+                df_estacion = pd.read_csv(archivo_estacion)
+                #df_estacion = pd.read_csv(archivo_estacion)
+                df_estacion.columns = df_estacion.columns.str.strip()
+
+                df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
+            
+                # Asegurar que el parámetro es numérico
+                if parametro in df_estacion.columns:
+                    df_estacion[parametro] = pd.to_numeric(
+                        df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
+                    )
+                    # Contar solo registros válidos (no vacíos y no cero)
+                    registros_validos = df_estacion[parametro][(df_estacion[parametro] > 0)].count()
+                    estaciones_datos[estacion] = registros_validos
+                else:
+                    estaciones_datos[estacion] = 0
+            except Exception as e:
+                st.warning(f"Error al procesar la estación {estacion}: {e}")
+        else:
+            estaciones_datos[estacion] = 0
+
+    # Identificar la estación con más registros válidos
+    estacion_max_datos = max(estaciones_datos, key=estaciones_datos.get)
+    max_datos = estaciones_datos[estacion_max_datos]
+
+    # Definir los rangos de grupos
+    rango_100_50 = (max_datos * 0.5, max_datos)
+    rango_50_25 = (max_datos * 0.25, max_datos * 0.5)
+    rango_menos_25 = (0, max_datos * 0.25)
+
+    # Clasificar estaciones en grupos
+    grupos_estaciones = {
+        "100% - 50% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_100_50[0] <= datos <= rango_100_50[1]],
+        "50% - 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_50_25[0] <= datos < rango_50_25[1]],
+        "Menos del 25% de registros válidos": [est for est, datos in estaciones_datos.items() if rango_menos_25[0] <= datos < rango_menos_25[1]],
+    }
+
+    # Mostrar un resumen de los grupos
+    st.subheader("Resumen de las estaciones por cantidad de datos válidos")
+    st.write(f"Estación con más registros válidos: {estacion_max_datos} ({max_datos} registros válidos)")
+
+    # Menú desplegable para seleccionar el grupo
+    grupo_seleccionado = st.selectbox("Selecciona el grupo de estaciones según cantidad de datos válidos", list(grupos_estaciones.keys()), key="grupo_selectbox")
+
+    # Filtrar estaciones según el grupo seleccionado
+    estaciones_filtradas = grupos_estaciones[grupo_seleccionado]
+
+    # Nuevo menú desplegable con estaciones filtradas
+    estacion = st.selectbox("Selecciona una estación meteorológica", estaciones_filtradas, key="estacion_filtrada_selectbox")
+
+    # Ruta del archivo de la estación seleccionada
+    archivo_estacion = os.path.join(output_dir_colima, f"{estacion}_df.csv")
+
+    # Leer el archivo CSV de la estación seleccionada
+    try:
+        df_estacion = pd.read_csv(archivo_estacion)
+        #df_estacion = pd.read_csv(archivo_estacion)
+        df_estacion.columns = df_estacion.columns.str.strip()
+
+        df_estacion['Fecha'] = pd.to_datetime(df_estacion['Fecha'], format='%Y/%m/%d', errors='coerce')
+        df_estacion['Año'] = df_estacion['Fecha'].dt.year
+        df_estacion['Mes'] = df_estacion['Fecha'].dt.month
+
+        # Asegurar que el parámetro es numérico
+        if parametro in df_estacion.columns:
+            df_estacion[parametro] = pd.to_numeric(
+                df_estacion[parametro].astype(str).str.replace('[^0-9.-]', '', regex=True), errors='coerce'
+            )
+
+        # Opciones de análisis: anual o mensual
+        analisis = st.radio("Selecciona el tipo de análisis", ["Anual", "Mensual"], key="analisis_radio")
+
+        if analisis == "Anual":
+            # Calcular promedios anuales y asegurarse de incluir años con 0 registros
+            all_years = pd.DataFrame({'Año': range(df_estacion['Año'].min(), df_estacion['Año'].max() + 1)})
+            promedios = df_estacion.groupby('Año')[parametro].mean().reset_index()
+            promedios.columns = ['Año', f"Promedio de {parametro.strip()}"]
+
+            # Combinar con todos los años para incluir años sin datos
+            promedios = all_years.merge(promedios, on='Año', how='left')
+            promedios[f"Promedio de {parametro.strip()}"] = promedios[f"Promedio de {parametro.strip()}"].fillna(0)
+
+            #    Gráfico de barras con espacios para años sin datos
+            st.subheader(f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})")
+            fig = go.Figure()
+
+            # Determinar cuartiles para la escala de colores
+            valores_validos = promedios[f"Promedio de {parametro.strip()}"][promedios[f"Promedio de {parametro.strip()}"] > 0]
+            q1, q2, q3 = valores_validos.quantile([0.25, 0.5, 0.75]).values if not valores_validos.empty else (0, 0, 0)
+
+            # Asignar colores según cuartiles
+            for _, row in promedios.iterrows():
+                color = "rgb(49,130,189)"  # Azul para Q1
+                if row[f"Promedio de {parametro.strip()}"] > q3:
+                    color = "rgb(214,39,40)"  # Rojo para Q4
+                elif row[f"Promedio de {parametro.strip()}"] > q2:
+                    color = "rgb(255,127,14)"  # Naranja para Q3
+                elif row[f"Promedio de {parametro.strip()}"] > q1:
+                    color = "rgb(255,215,0)"  # Amarillo para Q2
+
+                fig.add_trace(go.Bar(
+                    x=[row['Año']],
+                    y=[row[f"Promedio de {parametro.strip()}"]],
+                    marker_color=color,
+                    name=f"Año {int(row['Año'])}"
+                ))
+
+            # Configuración del gráfico
+            fig.update_layout(
+                title=f"Promedios anuales de {parametro.strip()} en la estación {estacion} (Coordenadas: {df_estacion['Latitud'].iloc[0]}, {df_estacion['Longitud'].iloc[0]})",
+                xaxis_title="Año",
+                yaxis_title=f"Promedio de {parametro.strip()}",
+                showlegend=False
+            )
+
+            st.plotly_chart(fig)
+
+        else:
+            # Seleccionar año para análisis mensual
+            ano_seleccionado = st.selectbox(
+                "Selecciona el año",
+                df_estacion['Año'].unique(),
+                key="ano_seleccionado_selectbox"
+            )
+
+            # Filtrar por año seleccionado y calcular promedios mensuales
+            df_anual = df_estacion[df_estacion['Año'] == ano_seleccionado]
+            all_months = pd.Series(range(1, 13))
+            promedios = df_anual.groupby('Mes')[parametro].mean().reindex(all_months, fill_value=0).reset_index()
+            promedios.columns = ['Mes', f"Promedio de {parametro.strip()}"]
+
+            # Gráfico de barras
+            st.subheader(f"Promedios mensuales de {parametro.strip()} en {ano_seleccionado} para la estación {estacion}")
+            st.bar_chart(promedios.set_index('Mes'))
+
+    except FileNotFoundError:
+        st.error(f"No se encontró el archivo para la estación seleccionada: {estacion}")
+    except Exception as e:
+        st.error(f"Error al procesar el archivo de la estación {estacion}: {e}")
+
+    columna_grafico = parametro
+    import plotly.express as px
+    import plotly.graph_objects as go
+    import plotly.graph_objects as go
+
+    # Crear el agrupamiento de estaciones según la cantidad de registros por estación
+    agrupamiento_estaciones = {
+        "50-100%": [],
+        "25-50%": [],
+        "0-25%": []
+    }
+
+    # Calcular el máximo de registros para una estación
+    if not df_resultado.empty:
+        max_registros = df_resultado['Clave'].value_counts().max()
+
+        # Crear los grupos
+        for clave, count in df_resultado['Clave'].value_counts().items():
+            if count >= 0.5 * max_registros:
+                agrupamiento_estaciones["50-100%"].append(clave)
+            elif 0.25 * max_registros <= count < 0.5 * max_registros:
+                agrupamiento_estaciones["25-50%"].append(clave)
+            else:
+                agrupamiento_estaciones["0-25%"].append(clave)
+
+    # Identificar el grupo de la estación seleccionada
+    grupo_seleccionado = None
+    for grupo, estaciones in agrupamiento_estaciones.items():
+        if estacion in estaciones:
+            grupo_seleccionado = grupo
+            break
+
+    # Verificar si el grupo seleccionado existe y filtrar las estaciones
+    if grupo_seleccionado:
+        estaciones_del_grupo = agrupamiento_estaciones[grupo_seleccionado]
+        df_filtrado = df_resultado[df_resultado['Clave'].isin(estaciones_del_grupo)].dropna(subset=["Latitud", "Longitud"])
+    else:
+        df_filtrado = pd.DataFrame()  # Si no se encuentra grupo, dejar vacío
+
+    if not df_filtrado.empty:
+        # Crear una figura base con fondo blanco
+        fig = go.Figure()
+
+        # Añadir las estaciones como puntos
         fig.add_trace(
             go.Scatter(
-                x=estacion_seleccionada['Longitud'],
-                y=estacion_seleccionada['Latitud'],
+                x=df_filtrado['Longitud'],
+                y=df_filtrado['Latitud'],
                 mode='markers',
-                marker=dict(size=14, color='gold', symbol='star'),
-                hoverinfo='none',  # Eliminar texto al pasar el cursor
-                name="Estación seleccionada"
+                marker=dict(size=8, color='blue', symbol='circle'),
+                text=df_filtrado['Clave'],
+                hoverinfo='text',
+                name="Estaciones"
             )
         )
 
-    # Añadir los polígonos de los municipios desde GeoJSON
-    for feature in colima_geojson["features"]:
-        geometry = feature["geometry"]
-        properties = feature["properties"]
+        # Añadir la estación seleccionada con un símbolo destacado
+        estacion_seleccionada = df_filtrado[df_filtrado['Clave'] == estacion]
+        if not estacion_seleccionada.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=estacion_seleccionada['Longitud'],
+                    y=estacion_seleccionada['Latitud'],
+                    mode='markers',
+                    marker=dict(size=14, color='gold', symbol='star'),
+                    hoverinfo='none',  # Eliminar texto al pasar el cursor
+                    name="Estación seleccionada"
+                )
+            )
 
-        # Excluir islas si es necesario
-        if "isla" not in properties.get("name", "").lower():
-            if geometry["type"] == "Polygon":
-                for coordinates in geometry["coordinates"]:
-                    x_coords, y_coords = zip(*coordinates)
-                    fig.add_trace(
-                        go.Scatter(
-                            x=x_coords,
-                            y=y_coords,
-                            mode="lines",
-                            line=dict(color="black", width=1.5),
-                            showlegend=False
-                        )
-                    )
-            elif geometry["type"] == "MultiPolygon":
-                for polygon in geometry["coordinates"]:
-                    for coordinates in polygon:
+        # Añadir los polígonos de los municipios desde GeoJSON
+        for feature in colima_geojson["features"]:
+            geometry = feature["geometry"]
+            properties = feature["properties"]
+
+            # Excluir islas si es necesario
+            if "isla" not in properties.get("name", "").lower():
+                if geometry["type"] == "Polygon":
+                    for coordinates in geometry["coordinates"]:
                         x_coords, y_coords = zip(*coordinates)
                         fig.add_trace(
                             go.Scatter(
@@ -2403,39 +2391,52 @@ if not df_filtrado.empty:
                                 showlegend=False
                             )
                         )
+                elif geometry["type"] == "MultiPolygon":
+                    for polygon in geometry["coordinates"]:
+                        for coordinates in polygon:
+                            x_coords, y_coords = zip(*coordinates)
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=x_coords,
+                                    y=y_coords,
+                                    mode="lines",
+                                    line=dict(color="black", width=1.5),
+                                    showlegend=False
+                                )
+                            )
 
-    # Configurar el diseño del gráfico
-    fig.update_layout(
-        title="Mapa de Estaciones en Colima (Grupo Actual)",
-        xaxis_title="Longitud",
-        yaxis_title="Latitud",
-        xaxis=dict(
-            scaleanchor="y",
-            scaleratio=1,
-            showgrid=False,
-            title_font=dict(color='blue'),
-            tickfont=dict(color='blue')  # Ticks azules en el eje X
-        ),
-        yaxis=dict(
-            showgrid=False,
-            title_font=dict(color='blue'),
-            tickfont=dict(color='blue')  # Ticks azules en el eje Y
-        ),
-        plot_bgcolor="white",  # Fondo blanco
-        paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
-        legend=dict(
-        font=dict(color='blue')),
-        showlegend=True,
-        width=800,
-        height=600
-    )
+        # Configurar el diseño del gráfico
+        fig.update_layout(
+            title="Mapa de Estaciones en Colima (Grupo Actual)",
+            xaxis_title="Longitud",
+            yaxis_title="Latitud",
+            xaxis=dict(
+                scaleanchor="y",
+                scaleratio=1,
+                showgrid=False,
+                title_font=dict(color='blue'),
+                tickfont=dict(color='blue')  # Ticks azules en el eje X
+            ),
+            yaxis=dict(
+                showgrid=False,
+                title_font=dict(color='blue'),
+                tickfont=dict(color='blue')  # Ticks azules en el eje Y
+            ),
+            plot_bgcolor="white",  # Fondo blanco
+            paper_bgcolor="white",  # Fondo blanco fuera del área de trazado
+            legend=dict(
+            font=dict(color='blue')),
+            showlegend=True,
+            width=800,
+            height=600
+        )
 
-    # Centrar la vista inicial en la capital de Colima
-    fig.update_xaxes(range=[-104.5, -103.5])  # Ajustar según las coordenadas de Colima
-    fig.update_yaxes(range=[18.5, 19.5])  # Ajustar según las coordenadas de Colima
+        # Centrar la vista inicial en la capital de Colima
+        fig.update_xaxes(range=[-104.5, -103.5])  # Ajustar según las coordenadas de Colima
+        fig.update_yaxes(range=[18.5, 19.5])  # Ajustar según las coordenadas de Colima
 
-    # Mostrar el gráfico
-    st.plotly_chart(fig)
+        # Mostrar el gráfico
+        st.plotly_chart(fig)
 
 ##########################################
 
