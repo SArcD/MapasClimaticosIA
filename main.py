@@ -7,6 +7,55 @@ import os  # Asegurar la importación de os
 import requests
 import streamlit as st
 
+    # Listas de claves
+    claves_colima = [
+        "C06001", "C06049", "C06076", "C06074", "C06006", "C06040", "C06010", "C06015",
+        "C06024", "C06043", "C06071", "C06062", "C06014", "ARMCM", "C06008", "C06075",
+        "C06056", "C06020", "C06002", "C06009", "C06041", "C06021", "C06073", "C06012",
+        "C06042", "C06016", "CHNCM", "CSTCM", "LPSCM", "ASLCM", "ORTCM", "RDRCM", 
+        "CMLCM", "PNTCM", "SCHCM", "CQMCM", "LAECM", "CMTCM", "C06063", "C06004",
+        "C06060", "C06064", "C06068", "C06036", "C06054", "C06018", "C06051", "C06069",
+        "C06070", "C06025", "BVSCM", "CUACM", "TRPCM", "C06066", "C06039", "C06030",
+        "C06048", "C06061", "C06003", "C06005", "C06053", "C06011", "C06013", "C06059",
+        "C06067", "C06017", "C06022", "C06023", "C06058", "C06007", "C06052", "C06065",
+        "IXHCM", "ACMCM", "CMDCM", "MNZCM", "SNTCM", "MINCM", "CLRCM", "CLLCM", 
+        "CDOCM", "LDACM", "DJLCM", "TCMCM"]
+
+    claves_colima_cerca = [
+        "C14008", "C14018", "MRZJL", "C14019", "C14046", "C14390", "ELCJL", "TMLJL", "C14027", "CHFJL",
+        "C14148", "C14112", "C14029", "C14094", "C14043", "C14343", "C14050", "BBAJL", "C14051", "C14315",
+        "VIHJL", "C14348", "C14011", "C14042", "C14086", "C14099", "C14336", "C14109", "TRJCM", "C14031",
+        "C14368", "C14034", "ECAJL", "C14141", "C14095", "C14052", "NOGJL", "C14142", "C14184", "TAPJL",
+        "C14005", "SLTJL", "C14322", "C14311", "C14151", "C14190", "C14024", "CPEJL", "CP4JL", "CP3JL",
+        "CP1JL", "C14067", "HIGJL", "RTOJL", "C14387", "C14350", "C14155", "C14022", "C14118", "C14342",
+        "ALCJL", "C14395", "IVAJL", "C14197", "C14158", "C14007", "C14079", "C14117", "C14166", "C14170",
+        "C14120", "C14352", "C14030", "CGZJL"
+    ]
+
+    claves_jalisco = {'BBAJL', 'C14008', 'C14018', 'C14019', 'C14027', 'C14029', 'C14043',
+                      'C14046', 'C14050', 'C14051', 'C14094', 'C14112', 'C14148', 'C14343',
+                      'C14390', 'CHFJL', 'ELCJL', 'MRZJL', 'TMLJL'}
+    claves_michoacan = {'ALCJL', 'C14005', 'C14007', 'C14011', 'C14022', 'C14024', 'C14030',
+                        'C14031', 'C14034', 'C14042', 'C14052', 'C14067', 'C14079', 'C14086',
+                        'C14095', 'C14099', 'C14109', 'C14117', 'C14118', 'C14120', 'C14141',
+                        'C14142', 'C14151', 'C14155', 'C14158', 'C14166', 'C14170', 'C14184',
+                        'C14190', 'C14197', 'C14311', 'C14315', 'C14322', 'C14336', 'C14342',
+                        'C14348', 'C14350', 'C14352', 'C14368', 'C14387', 'C14395', 'CGZJL',
+                        'CP1JL', 'CP3JL', 'CP4JL', 'CPEJL', 'ECAJL', 'HIGJL', 'IVAJL', 'NOGJL',
+                        'RTOJL', 'SLTJL', 'TAPJL', 'TRJCM', 'VIHJL'}
+
+
+    # Combinar todas las claves
+    claves = claves_colima + claves_colima_cerca
+
+    # Columnas numéricas disponibles
+    columnas_numericas = [
+        'Precipitación(mm)', 'Temperatura Media(ºC)', 
+        'Temperatura Máxima(ºC)', 'Temperatura Mínima(ºC)', 'Evaporación(mm)'
+    ]
+
+
+
 # Token de acceso personal
 #GITHUB_TOKEN = "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"
 GITHUB_TOKEN = "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"
@@ -61,25 +110,6 @@ elif seccion == "Mapas Climatológicos":
     colima_files = list_files_from_github("datos_estaciones_colima")
     cerca_files = list_files_from_github("datos_estaciones_cerca_colima")
 
-# Mostrar archivos y datos
-#st.title("Análisis de Datos Meteorológicos")
-
-# Leer y mostrar archivos de la carpeta Colima
-#st.subheader("Datos de estaciones en Colima")
-#for file in colima_files:
-#    st.write(f"Leyendo archivo: {file}")
-#    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
-#    if df is not None:
-#        st.dataframe(df)
-
-# Leer y mostrar archivos de la carpeta Cerca
-#st.subheader("Datos de estaciones cerca de Colima")
-#for file in cerca_files:
-#    st.write(f"Leyendo archivo: {file}")
-#    df = read_csv_from_github(f"https://github.com/SArcD/MapasClimaticosIA/blob/main/{file}")
-#    if df is not None:
-#        st.dataframe(df)
-# Carpetas en el repositorio
     output_dir_colima = "datos_estaciones_colima"
     output_dir_cerca = "datos_estaciones_cerca_colima"
 
@@ -109,11 +139,6 @@ elif seccion == "Mapas Climatológicos":
                         st.error(f"Error al descargar {link}: {e}")
                 else:
                     st.write(f"Archivo ya existe: {file_name}")
-
-# Descargar los archivos
-#download_files_from_links(links_colima, output_dir_colima)#
-#download_files_from_links(links_cerca, output_dir_cerca)
-
 
     import numpy as np
     import streamlit as st
@@ -212,16 +237,6 @@ elif seccion == "Mapas Climatológicos":
 
 ## Usar dimensiones por defecto (6000x6000)
 #dim_por_defecto = (5760, 5420)
-
-#elevation_data = read_ace2(file_path, dim_por_defecto)
-
-#if elevation_data is not None:
-#    tile_size = elevation_data.shape
-#    st.success(f"Archivo procesado correctamente con dimensiones predeterminadas: {tile_size}.")
-#else:
-#    st.error("No se pudo procesar el archivo ACE2 con dimensiones por defecto.")
-
-
 
 #############
 
