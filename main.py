@@ -435,8 +435,9 @@ elif seccion == "Mapas Climatológicos":
     """, unsafe_allow_html=True)
 
     # Directorios de entrada    
-    output_dirs = [output_dir_colima, output_dir_cerca]
-
+    st.session_state.output_dirs = [output_dir_colima, output_dir_cerca] 
+    #output_dirs = [output_dir_colima, output_dir_cerca]
+    output_dirs = st.session_state.output_dirs
     # Obtener años disponibles
     anos_disponibles = obtener_anos_disponibles(claves, output_dirs)
     if not anos_disponibles:
