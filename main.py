@@ -2440,7 +2440,7 @@ elif seccion == "Registro de datos históricos":
 
 ##########################################
 
-elif seccion == "Análisis con Prophet"
+elif seccion == "Análisis con Prophet":
 
 
     import os
