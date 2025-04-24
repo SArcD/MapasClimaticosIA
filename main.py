@@ -14,6 +14,14 @@ GITHUB_TOKEN = "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"
 #github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
 
+# Sidebar para navegación
+seccion = st.sidebar.radio(
+    "Selecciona una sección:",
+    ["Descripción", "Análisis con Prophet", "Análisis de Ciclos (STL + Fourier)", "Resumen por Década"]
+)
+
+
+
 # URL base del repositorio en GitHub
 github_base_url = "https://api.github.com/repos/SArcD/MapasClimaticosIA/contents/"
 
