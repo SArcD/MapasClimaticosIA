@@ -3086,7 +3086,7 @@ elif seccion == "Trayectoria Solar":
         sin_altitude = (math.sin(math.radians(latitude)) * math.sin(math.radians(declination)) +
                         math.cos(math.radians(latitude)) * math.cos(math.radians(declination)) * math.cos(math.radians(hour_angle)))
         if sin_altitude <= 0:
-        return None, None
+            return None, None
 
         elevation = math.degrees(math.asin(sin_altitude))
 
