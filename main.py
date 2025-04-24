@@ -799,59 +799,59 @@ elif seccion == "Mapas Climatológicos":
 
 
 
-import numpy as np
-from scipy.interpolate import griddata
-import plotly.graph_objects as go
-import json
+    import numpy as np
+    from scipy.interpolate import griddata
+    import plotly.graph_objects as go
+    import json
 
-# Definir una escala coolwarm personalizada
-coolwarm_scale = [
-    [0.0, 'rgb(59,76,192)'],  # Azul oscuro
-    [0.35, 'rgb(116,173,209)'],  # Azul claro
-    [0.5, 'rgb(221,221,221)'],  # Blanco/neutral
-    [0.65, 'rgb(244,109,67)'],  # Naranja claro
-    [1.0, 'rgb(180,4,38)']  # Rojo oscuro
-]
+    # Definir una escala coolwarm personalizada
+    coolwarm_scale = [
+        [0.0, 'rgb(59,76,192)'],  # Azul oscuro
+        [0.35, 'rgb(116,173,209)'],  # Azul claro
+        [0.5, 'rgb(221,221,221)'],  # Blanco/neutral
+        [0.65, 'rgb(244,109,67)'],  # Naranja claro
+        [1.0, 'rgb(180,4,38)']  # Rojo oscuro
+    ]
 
-# Cargar el archivo GeoJSON (Colima.JSON) para referencia del mapa
-try:
-    with open('Colima.json', 'r', encoding='latin-1') as file:
-        colima_geojson = json.load(file)
-except Exception as e:
-    st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
-    st.stop()
+    # Cargar el archivo GeoJSON (Colima.JSON) para referencia del mapa
+    try:
+        with open('Colima.json', 'r', encoding='latin-1') as file:
+            colima_geojson = json.load(file)
+    except Exception as e:
+        st.error(f"No se pudo cargar el archivo GeoJSON: {e}")
+        st.stop()
 
-st.subheader("Mapa con valores interpolados")
+    st.subheader("Mapa con valores interpolados")
 
-st.markdown("""
-<div style="text-align: justify;">
-<p>Se utilizaron distintos métodos de interpolación para generar un mapa continuo del parámetro seleccionado. A continuación, puede seleccionar entre los distintos métodos y el mapa se generará a partir de la interpolación de los valores de las estaciones cercanas.</p>
-</div>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: justify;">
+    <p>Se utilizaron distintos métodos de interpolación para generar un mapa continuo del parámetro seleccionado. A continuación, puede seleccionar entre los distintos métodos y el mapa se generará a partir de la interpolación de los valores de las estaciones cercanas.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
-# Mostrar mapa con estaciones
-if not df_resultado.empty:
-    # Menú desplegable para seleccionar la columna numérica a graficar
-    columna_grafico = st.selectbox("Selecciona el parámetro para graficar", options=columnas_numericas)
+    # Mostrar mapa con estaciones
+    if not df_resultado.empty:
+        # Menú desplegable para seleccionar la columna numérica a graficar
+        columna_grafico = st.selectbox("Selecciona el parámetro para graficar", options=columnas_numericas)
 
-    # Filtrar estaciones con valores NaN en la columna seleccionada
-    if columna_grafico in df_resultado.columns:
-        df_filtrado = df_resultado.dropna(subset=[columna_grafico])
+        # Filtrar estaciones con valores NaN en la columna seleccionada
+        if columna_grafico in df_resultado.columns:
+            df_filtrado = df_resultado.dropna(subset=[columna_grafico])
 
-        if not df_filtrado.empty:
-            # Preparar datos para interpolación
-            latitudes = df_filtrado["Latitud"].values
-            longitudes = df_filtrado["Longitud"].values
-            valores = df_filtrado[columna_grafico].values
+            if not df_filtrado.empty:
+                # Preparar datos para interpolación
+                latitudes = df_filtrado["Latitud"].values
+                longitudes = df_filtrado["Longitud"].values
+                valores = df_filtrado[columna_grafico].values
 
-            margen_long = 0.08 * (longitudes.max() - longitudes.min())  # 5% del rango en longitud
-            margen_lat = 0.08 * (latitudes.max() - latitudes.min())    # 5% del rango en latitud
+                margen_long = 0.08 * (longitudes.max() - longitudes.min())  # 5% del rango en longitud
+                margen_lat = 0.08 * (latitudes.max() - latitudes.min())    # 5% del rango en latitud
 
-            grid_lon, grid_lat = np.meshgrid(
-                np.linspace(longitudes.min() - margen_long, longitudes.max() + margen_long, 100),
-                np.linspace(latitudes.min() - margen_lat, latitudes.max() + margen_lat, 100)
-            )
+                grid_lon, grid_lat = np.meshgrid(
+                    np.linspace(longitudes.min() - margen_long, longitudes.max() + margen_long, 100),
+                    np.linspace(latitudes.min() - margen_lat, latitudes.max() + margen_lat, 100)
+                )
 
 #            # Interpolar los datos
 #            metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
@@ -874,49 +874,49 @@ if not df_resultado.empty:
 #                        interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
 
 #bloque inicia
-            # Interpolar los datos
-            metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
-            #columna = columna_grafico.strip()
+                # Interpolar los datos
+                metodo_interpolacion = st.selectbox("Selecciona el método de interpolación", ["Linear", "Nearest", "IDW"])
+                #columna = columna_grafico.strip()
 
-            # 1. Filtrar valores válidos y sincronizar coordenadas
-            mascara_validos = ~df_filtrado[columna_grafico].isna()
-            longitudes = df_filtrado.loc[mascara_validos, "Longitud"].values
-            latitudes = df_filtrado.loc[mascara_validos, "Latitud"].values
-            valores = df_filtrado.loc[mascara_validos, columna_grafico].values
+                # 1. Filtrar valores válidos y sincronizar coordenadas
+                mascara_validos = ~df_filtrado[columna_grafico].isna()
+                longitudes = df_filtrado.loc[mascara_validos, "Longitud"].values
+                latitudes = df_filtrado.loc[mascara_validos, "Latitud"].values
+                valores = df_filtrado.loc[mascara_validos, columna_grafico].values
 
-            # 2. Verificar si hay suficientes puntos para interpolar
-            if len(valores) < 4:
-                st.warning("No hay suficientes estaciones con valores válidos para realizar la interpolación.")
-                st.stop()
+                # 2. Verificar si hay suficientes puntos para interpolar
+                if len(valores) < 4:
+                    st.warning("No hay suficientes estaciones con valores válidos para realizar la interpolación.")
+                    st.stop()
 
-            # 3. Interpolación
-            if metodo_interpolacion in ["Linear", "Nearest"]:
-                try:
-                    interpolados = griddata(
-                        (longitudes, latitudes),
-                        valores,
-                        (grid_lon, grid_lat),
-                        method=metodo_interpolacion.lower()
-                    )
-                except Exception as e:
-                    st.warning(f"Ocurrió un error con '{metodo_interpolacion}'. Usando 'nearest' como alternativa.")
-                    interpolados = griddata(
-                        (longitudes, latitudes),
-                        valores,
-                        (grid_lon, grid_lat),
-                        method="nearest"
-                    )
+                # 3. Interpolación
+                if metodo_interpolacion in ["Linear", "Nearest"]:
+                    try:
+                        interpolados = griddata(
+                            (longitudes, latitudes),
+                            valores,
+                            (grid_lon, grid_lat),
+                            method=metodo_interpolacion.lower()
+                        )
+                    except Exception as e:
+                        st.warning(f"Ocurrió un error con '{metodo_interpolacion}'. Usando 'nearest' como alternativa.")
+                        interpolados = griddata(
+                            (longitudes, latitudes),
+                            valores,
+                            (grid_lon, grid_lat),
+                            method="nearest"
+                        )
 
-            elif metodo_interpolacion == "IDW":
-                # Implementación básica de IDW
-                def idw_interpolation(x, y, values, xi, yi):
-                    weights = 1 / np.sqrt((x - xi) ** 2 + (y - yi) ** 2 + 1e-10)
-                    return np.sum(weights * values) / np.sum(weights)
+                elif metodo_interpolacion == "IDW":
+                    # Implementación básica de IDW
+                    def idw_interpolation(x, y, values, xi, yi):
+                        weights = 1 / np.sqrt((x - xi) ** 2 + (y - yi) ** 2 + 1e-10)
+                        return np.sum(weights * values) / np.sum(weights)
 
-                interpolados = np.zeros_like(grid_lon)
-                for i in range(grid_lon.shape[0]):
-                    for j in range(grid_lon.shape[1]):
-                        interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
+                    interpolados = np.zeros_like(grid_lon)
+                    for i in range(grid_lon.shape[0]):
+                        for j in range(grid_lon.shape[1]):
+                            interpolados[i, j] = idw_interpolation(longitudes, latitudes, valores, grid_lon[i, j], grid_lat[i, j])
 #bloque nuevo termina
 
             
@@ -1122,74 +1122,59 @@ if not df_resultado.empty:
 #    st.write("No hay datos disponibles para mostrar en el mapa.")
 
 
-            # Crear la figura
-            fig = go.Figure()
 
-            # Crear la figura
-            fig = go.Figure()
+                # Crear la figura
+                fig = go.Figure()
 
-            # Añadir contornos de valores interpolados
-            fig.add_trace(
-                go.Contour(
-                    z=interpolados,
-                    x=grid_lon[0],
-                    y=grid_lat[:, 0],
-                    colorscale=coolwarm_colorscale,
-                    line=dict(color="black", width=1.0),  # Líneas más gruesas
-                    opacity=0.7,
-                    contours=dict(
-                        coloring="fill",  # Las zonas entre curvas tienen color
-                        showlabels=True,  # Mostrar etiquetas en los contornos
-                        labelfont=dict(size=10, color="black")
-                    ),
-                    colorbar=dict(
-                        title=f"{columna_grafico.strip()}",
-                        len=0.8  # Reducir la longitud de la barra de color
-                    ),
-                    name=f"Interpolación ({columna_grafico.strip()})"
+                # Añadir contornos de valores interpolados
+                fig.add_trace(
+                    go.Contour(
+                        z=interpolados,
+                        x=grid_lon[0],
+                        y=grid_lat[:, 0],
+                        colorscale=coolwarm_colorscale,
+                        line=dict(color="black", width=1.0),  # Líneas más gruesas
+                        opacity=0.7,
+                        contours=dict(
+                            coloring="fill",  # Las zonas entre curvas tienen color
+                            showlabels=True,  # Mostrar etiquetas en los contornos
+                            labelfont=dict(size=10, color="black")
+                        ),
+                        colorbar=dict(
+                            title=f"{columna_grafico.strip()}",
+                            len=0.8  # Reducir la longitud de la barra de color
+                        ),
+                        name=f"Interpolación ({columna_grafico.strip()})"
+                    )
                 )
-            )
 
-            # Añadir puntos de las estaciones
-            fig.add_trace(
-                go.Scatter(
-                    x=longitudes,
-                    y=latitudes,
-                    mode="markers",
-                    marker=dict(
-                        size=10,
-                        color="black",
-                        opacity=1.0,
-                        #colorscale=coolwarm_scale,
-                        showscale=False  # Ocultar barra de colores adicional
-                    ),
-                    text=df_filtrado["Clave"],
-                    hoverinfo="text",
-                    name="Estaciones"
+                # Añadir puntos de las estaciones
+                fig.add_trace(
+                    go.Scatter(
+                        x=longitudes,
+                        y=latitudes,
+                        mode="markers",
+                        marker=dict(
+                            size=10,
+                            color="black",
+                            opacity=1.0,
+                            #colorscale=coolwarm_scale,
+                            showscale=False  # Ocultar barra de colores adicional
+                        ),
+                        text=df_filtrado["Clave"],
+                        hoverinfo="text",
+                        name="Estaciones"
+                    )
                 )
-            )
 
-            # Añadir contornos de los municipios
-            for feature in colima_geojson["features"]:
-                geometry = feature["geometry"]
-                properties = feature["properties"]
+                # Añadir contornos de los municipios
+                for feature in colima_geojson["features"]:
+                    geometry = feature["geometry"]
+                    properties = feature["properties"]
 
-                if "isla" not in properties.get("name", "").lower():
-                    if geometry["type"] == "Polygon":
-                        for coordinates in geometry["coordinates"]:
-                            x_coords, y_coords = zip(*coordinates)
-                            fig.add_trace(
-                                go.Scatter(
-                                    x=x_coords,
-                                    y=y_coords,
-                                    mode="lines",
-                                    line=dict(color="black", width=2),
-                                    showlegend=False
-                                )
-                            )
-                    elif geometry["type"] == "MultiPolygon":
-                        for polygon in geometry["coordinates"]:
-                            for coordinates in polygon:
+                    if "isla" not in properties.get("name", "").lower():
+                        if geometry["type"] == "Polygon":
+                            for coordinates in geometry["coordinates"]:
                                 x_coords, y_coords = zip(*coordinates)
                                 fig.add_trace(
                                     go.Scatter(
@@ -1200,103 +1185,114 @@ if not df_resultado.empty:
                                         showlegend=False
                                     )
                                 )
+                        elif geometry["type"] == "MultiPolygon":
+                            for polygon in geometry["coordinates"]:
+                                for coordinates in polygon:
+                                    x_coords, y_coords = zip(*coordinates)
+                                    fig.add_trace(
+                                        go.Scatter(
+                                            x=x_coords,
+                                            y=y_coords,
+                                            mode="lines",
+                                            line=dict(color="black", width=2),
+                                            showlegend=False
+                                        )
+                                    )
 
-            # Configuración del diseño
-            fig.update_layout(
-                title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()})",
-                xaxis_title="Longitud",
-                yaxis_title="Latitud",
-                margin=dict(l=0, r=0, t=50, b=0)
-            )
+                # Configuración del diseño
+                fig.update_layout(
+                    title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()})",
+                    xaxis_title="Longitud",
+                    yaxis_title="Latitud",
+                    margin=dict(l=0, r=0, t=50, b=0)
+                )
 
-            fig.update_layout(
-                xaxis=dict(
-                    title="Longitud",
-                    #titlefont=dict(size=14, family="Arial"),
-                    tickfont=dict(size=12, family="Arial"),
-                    range=[-104.7, -103.3]  # Ajustar los límites iniciales del eje X (Longitud)
-                ),
-                    yaxis=dict(
-                    title="Latitud",
-                    #titlefont=dict(size=14, family="Arial"),
-                    tickfont=dict(size=12, family="Arial"),
-                    range=[18.5, 19.7]  # Ajustar los límites iniciales del eje Y (Latitud)
-                ),
-                geo=dict(
-                    center=dict(
-                        lon=-104.0,  # Longitud central
-                        lat=19.3     # Latitud central
+                fig.update_layout(
+                    xaxis=dict(
+                        title="Longitud",
+                        #titlefont=dict(size=14, family="Arial"),
+                        tickfont=dict(size=12, family="Arial"),
+                        range=[-104.7, -103.3]  # Ajustar los límites iniciales del eje X (Longitud)
                     ),
-                    projection_scale=1  # Ajustar el zoom inicial
-                ),
-                margin=dict(l=20, r=20, t=50, b=20) 
-            )
+                        yaxis=dict(
+                        title="Latitud",
+                        #titlefont=dict(size=14, family="Arial"),
+                        tickfont=dict(size=12, family="Arial"),
+                        range=[18.5, 19.7]  # Ajustar los límites iniciales del eje Y (Latitud)
+                    ),
+                    geo=dict(
+                        center=dict(
+                            lon=-104.0,  # Longitud central
+                            lat=19.3     # Latitud central
+                        ),
+                        projection_scale=1  # Ajustar el zoom inicial
+                    ),
+                    margin=dict(l=20, r=20, t=50, b=20) 
+                )
 
-            fig.update_layout(
-                width=1000,  # Ancho del gráfico
-                height=600,  # Altura del gráfico
-                title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
-                xaxis_title="Longitud",
-                yaxis_title="Latitud",
-                margin=dict(l=0, r=0, t=50, b=0)  # Márgenes del gráfico
-            )
+                fig.update_layout(
+                    width=1000,  # Ancho del gráfico
+                    height=600,  # Altura del gráfico
+                    title=f"Mapa de estaciones y contornos interpolados ({columna_grafico.strip()} para el año {ano}, mes {mes})",
+                    xaxis_title="Longitud",
+                    yaxis_title="Latitud",
+                    margin=dict(l=0, r=0, t=50, b=0)  # Márgenes del gráfico
+                )
 
 
-            # Mostrar el gráfico
-            st.plotly_chart(fig, use_container_width=True)
+                # Mostrar el gráfico
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning(f"No hay estaciones con datos válidos en la columna '{columna_grafico}'.")
         else:
-            st.warning(f"No hay estaciones con datos válidos en la columna '{columna_grafico}'.")
+            st.warning("La columna seleccionada no está disponible en el DataFrame.")
     else:
-        st.warning("La columna seleccionada no está disponible en el DataFrame.")
-else:
-    st.write("No hay datos disponibles para mostrar en el mapa.")
+        st.write("No hay datos disponibles para mostrar en el mapa.")
 
 
 
-import streamlit as st
+    import streamlit as st
 
-# Expander con pestañas para explicar los métodos de interpolación
-with st.expander("Métodos de Interpolación", expanded=True):
-    tab1, tab2, tab3 = st.tabs(["Linear", "Nearest", "IDW"])
+    # Expander con pestañas para explicar los métodos de interpolación
+    with st.expander("Métodos de Interpolación", expanded=True):
+        tab1, tab2, tab3 = st.tabs(["Linear", "Nearest", "IDW"])
     
-    with tab1:
-        st.markdown("""
-        ### Interpolación Linear
-        Este método calcula los valores interpolados mediante un ajuste lineal entre los puntos más cercanos a la ubicación deseada. 
-        Es ideal para datos que se distribuyen suavemente en el espacio, ya que evita cambios bruscos entre las zonas interpoladas.
+        with tab1:
+            st.markdown("""
+            ### Interpolación Linear
+            Este método calcula los valores interpolados mediante un ajuste lineal entre los puntos más cercanos a la ubicación deseada. 
+            Es ideal para datos que se distribuyen suavemente en el espacio, ya que evita cambios bruscos entre las zonas interpoladas.
 
-        **Implementación en el código:**
-        - En el código, se utiliza la función `griddata` del paquete `scipy.interpolate`.
-        - El parámetro `method="linear"` indica que se debe realizar una interpolación lineal.
-        - Se calcula una grilla regular de valores interpolados basada en las latitudes, longitudes y valores de las estaciones cercanas.
-        """, unsafe_allow_html=True)
+            **Implementación en el código:**
+            - En el código, se utiliza la función `griddata` del paquete `scipy.interpolate`.
+            - El parámetro `method="linear"` indica que se debe realizar una interpolación lineal.
+            - Se calcula una grilla regular de valores interpolados basada en las latitudes, longitudes y valores de las estaciones cercanas.
+            """, unsafe_allow_html=True)
     
-    with tab2:
-        st.markdown("""
-        ### Interpolación Nearest (Vecino más cercano)
-        Este método asigna el valor del punto más cercano a cada posición interpolada. 
-        Es útil para datos discretos o cuando se desea mantener los valores originales sin suavizar la información.
+        with tab2:
+            st.markdown("""
+            ### Interpolación Nearest (Vecino más cercano)
+            Este método asigna el valor del punto más cercano a cada posición interpolada. 
+            Es útil para datos discretos o cuando se desea mantener los valores originales sin suavizar la información.
 
-        **Implementación en el código:**
-        - En el código, también se utiliza la función `griddata` del paquete `scipy.interpolate`.
-        - El parámetro `method="nearest"` asegura que el valor asignado en cada celda de la grilla corresponde al de la estación más cercana.
-        - Este método es más rápido pero menos suave en comparación con la interpolación lineal.
-        """, unsafe_allow_html=True)
+            **Implementación en el código:**
+            - En el código, también se utiliza la función `griddata` del paquete `scipy.interpolate`.
+            - El parámetro `method="nearest"` asegura que el valor asignado en cada celda de la grilla corresponde al de la estación más cercana.
+            - Este método es más rápido pero menos suave en comparación con la interpolación lineal.
+            """, unsafe_allow_html=True)
     
-    with tab3:
-        st.markdown("""
-        ### Interpolación Inverse Distance Weighting (IDW)
-        Este método utiliza una fórmula basada en la distancia inversa para asignar valores interpolados.
-        Los puntos más cercanos tienen mayor influencia en el valor final, mientras que los puntos más lejanos tienen menor impacto.
+        with tab3:
+            st.markdown("""
+            ### Interpolación Inverse Distance Weighting (IDW)
+            Este método utiliza una fórmula basada en la distancia inversa para asignar valores interpolados.
+            Los puntos más cercanos tienen mayor influencia en el valor final, mientras que los puntos más lejanos tienen menor impacto.
 
-        **Implementación en el código:**
-        - Se define una función `idw_interpolation` personalizada.
-        - Para cada punto de la grilla, se calcula la distancia a todas las estaciones y se asigna un peso inversamente proporcional a esta distancia.
-        - Los valores interpolados se calculan como la suma ponderada de los valores de las estaciones.
-        - Este método es más computacionalmente intensivo, pero permite un control más detallado sobre la influencia de las estaciones cercanas.
-        """, unsafe_allow_html=True)
-
-
+            **Implementación en el código:**
+            - Se define una función `idw_interpolation` personalizada.
+            - Para cada punto de la grilla, se calcula la distancia a todas las estaciones y se asigna un peso inversamente proporcional a esta distancia.
+            - Los valores interpolados se calculan como la suma ponderada de los valores de las estaciones.
+            - Este método es más computacionalmente intensivo, pero permite un control más detallado sobre la influencia de las estaciones cercanas.
+            """, unsafe_allow_html=True)
 
 import numpy as np
 from scipy.interpolate import griddata
